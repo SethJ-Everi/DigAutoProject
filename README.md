@@ -6,3 +6,4 @@ The idea is for the program to accept a user selected excel file like an operato
 Need to work on:
 currency cleaning or standardization, Expanding audit logic to be more robust and include RTP, Separate audit functionality for versions/approved versions, formatting of "differences" excel file
 
+Created in python 3.10, pandas and tkinter
