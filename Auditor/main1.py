@@ -45,7 +45,8 @@ def normalize_game_id(game_id):
         .lower()
         .replace(" ", "")         # Remove spaces
         .replace("'", "")         # Remove apostrophes
-        .replace("’", "")         # Also handle curly apostrophes (from copy-paste)
+        .replace("’", "")         # Also handle curly apostrophes (from copy-paste)     
+        .replace(":", "")         #And colons like for off the hook fishing     
     )
 
 
