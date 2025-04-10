@@ -1,9 +1,26 @@
 # DigAutoProject
 Test run of basic functionality for the auto audit project. 
 
-The idea is for the program to accept a user selected excel file like an operator sheet and then intake another user selected active data excel file to compare against and audit. It should then produce another excel file which highlights differences in game bet settings. 
+The idea is for the program to intake a user selected excel sheet like an operator sheet and then intake another user selected excel sheet like a report file to compare against and audit. It should then produce a report excel file which highlights differences.
 
-Need to work on:
-currency cleaning or standardization, Expanding audit logic to be more robust and include RTP, Separate audit functionality for versions/approved versions, formatting of "differences" excel file, INTAKING ACTIVE EXCELS TO BUILD/MAINTAIN sql database for reporting purposes
+MVP:
+Load both sheets
+Normalize Game IDs
+Normalize Data values
+Compare row by row per game ID
+Compare columns of interest
+output results to excel
+open excel file
+Simple UI
+ 
+Nice to haves:
+More robust error handling
+Better formatting in excel output(maybe color highlights etc)
+Option to configure comparison fields - only compare or show default denoms or RTPs
+Possible integration with admin panel?
+
 
 Created in python 3.10, pandas and tkinter
+
+Known Collaborators:
+Seth and Andrea
