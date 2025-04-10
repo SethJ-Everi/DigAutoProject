@@ -1,97 +1,249 @@
-import sqlite3
+
+# standard imports
+import re
+from tkinter import filedialog, messagebox
+import datetime
 from tkinter import *
-import tkinter
-from tkinter import filedialog
+import os
+
+# third parrty imports
 import pandas as pd
 
-# Setting this up so that the user-selected file can be accessed globally
-user_selected_file = None
+
+# Global state to hold loaded dataframes so they can be accessed across functions
+app_state = {
+    "operator_df": None,
+    "report_df": None
+}
+
+# Explicit mapping between report and operator columns allowing comparison for differing headers
+column_mapping = {
+    'Everi Game ID': 'Game',
+    'Denom': 'Denom Selection',
+    'Line Selection': 'Line/Ways Selection',
+    'Bet Multiplier Selection': 'Bet Multiplier Selection',
+    'Default Denom': 'Default Denom Selection',
+    'Default Line': 'Default Line/Ways',
+    'Default Bet Multiplier': 'Default Bet Multiplier',
+    'Default Bet': 'Total Default Bet',
+    'Min Bet': 'Min Bet',
+    'Max Bet': 'Max Bet'
+}
+# get the operator column names directly from the mapping
+operator_columns = list(column_mapping.values())
+
+def normalize_game_id(game_id):
+    # Normalzie game ids so they can all be compared fairly
+
+    if pd.isna(game_id):
+        return ""
+    
+    # Convert to string, lowercase, strip spaces and remove apostrophes and punctuation
+    return (
+        str(game_id)
+        .strip()
+        .lower()
+        .replace(" ", "")         # Remove spaces
+        .replace("'", "")         # Remove apostrophes
+        .replace("’", "")         # Also handle curly apostrophes (from copy-paste)
+    )
 
 
-### Originally was using sqlite3 and a series of queries to handle the excel files and audit logic.
-### Removed until I am more familiar. Will try to re acquaint myself with pandas/dataframes
-# # Database name
-# connection = sqlite3.connect("audit_test.db")
-# cursor = connection.cursor()
 
-# When user presses button this should handle the initial file upload. SHOULD BE OPERATOR SHEET FORMAT
-def user_first_upload():
-    # Global variable to be used for user-selected file so we can access it easily in other functions
-    global user_selected_file
-    # Prevents an empty tkinter window from appearing
-    tkinter.Tk().withdraw()
-    # Produces a file selection window and sets settings
-    user_selected_file = filedialog.askopenfilename(filetypes=[("Excel Files", "*.xlsx"), ("All Files", "*.*")])
+def normalize_value(value):
+    if pd.isna(value):
+        return []
+
+    if isinstance(value, (int, float)):
+        return [round(float(value), 2)]  # round for consistent comparison
+
+    if isinstance(value, str):
+        parts = re.split(r'[,\s]+', value)
+        cleaned_numbers = []
+        cleaned_strings = []
+
+        for part in parts:
+            part = part.strip()
+            if not part:
+                continue
+            try:
+                # Remove $ signs and convert to float
+                num = float(part.replace('$', ''))
+                cleaned_numbers.append(round(num, 2))  # rounding to avoid float precision issues
+            except ValueError:
+                cleaned_strings.append(part.lower())
+
+        # Sort numeric and string parts separately, then combine
+        return sorted(cleaned_numbers) + sorted(cleaned_strings)
+
+    return [str(value).strip().lower()]
 
 
-# Merged the second file upload and audit function. When user presses second button it should prompt another file upload
-# SHOULD BE ACTIVE DATA FORMATTED EXCEL
-def audit_function():
-    # Ask the user to upload the second Excel file
-    second_file = filedialog.askopenfilename(filetypes=[("Excel Files", "*.xlsx"), ("All Files", "*.*")])
-
-    # Check if both files are selected
-    if not user_selected_file or not second_file:
-        print("Please select both Excel files.")
+def load_operator_sheet():
+    file = filedialog.askopenfilename(filetypes=[("Excel Files", "*.xlsx")])
+    if not file:
         return
 
-    # Columns to compare in the first Excel file
-    columns_to_compare1 = ['Game', 'Denom Selection', 'Line/Ways Selection', 'Bet Multiplier Selection',
-                           'Default Denom Selection', 'Default Line/Ways', 'Default Bet Multiplier',
-                           'Total Default Bet', 'Min Bet', 'Max Bet']
+    # Step 1: Read first 10 rows without headers to scan for known column names - This can be increased later without performance hit
+    preview_df = pd.read_excel(file, header=None, nrows=10)
 
-    # Columns to compare in the second Excel file (Might need to adjust. Also there is a much better way to do this...)
-    columns_to_compare2 = ['Game', 'Denom', 'Line/Ways', 'Bet Multiplier', 'Default Denom', 'Default Line/Ways',
-                            'Default Bet Multiplier', 'Total Default Bet', 'Min Bet', 'Max Bet']
+    header_row = None
+    # Loop through rows looking for a row that contains 'Game' (a key operator column)
+    for i, row in preview_df.iterrows():
+        if 'Game' in row.values:
+            header_row = i
+            break
 
-    # Read the first Excel file into a DataFrame, skipping empty rows - retouch this later
-    excel_df1 = pd.read_excel(user_selected_file, skiprows=lambda x: x in [0, 1])
+    # If header row is not found, throw an error
+    if header_row is None:
+        messagebox.showerror("Error", "Could not find header row in operator sheet.")
+        return
 
-    # # Troubleshooting to check which columns in columns_to_compare1 exist in the DataFrame
-    # found_columns = [col for col in columns_to_compare1 if col in excel_df1.columns]
-    # if not found_columns:
-    #     print(f"No columns found in the first Excel file.")
-    #     return
+    # Step 2: Read actual data starting at detected header row
+    df = pd.read_excel(file, skiprows=header_row)
+    df.columns = df.columns.str.strip()  # Remove leading/trailing spaces in headers
 
-    # Read the second Excel file into a DataFrame
-    excel_df2 = pd.read_excel(second_file)
+    # Ensure 'Game' column exists before proceeding
+    if 'Game' not in df.columns:
+        messagebox.showerror("Error", "'Game' column not found in operator sheet.")
+        return
 
-    # Create a new DataFrame for the differences...
-    differences = pd.DataFrame(columns=columns_to_compare1 + ['Differences'])
+    # Strip whitespace and ensure consistent string formatting for Game names
+    df['Game'] = df['Game'].apply(normalize_game_id)
 
-    # Iterate through games in the second Excel file
-    for index, row in excel_df2.iterrows():
-        game = row['Game']
+    # Remove duplicate Game rows to avoid false mismatches
+    df = df.drop_duplicates(subset='Game')
 
-        # Find the corresponding row in the first Excel file
-        matching_row = excel_df1[excel_df1['Game'] == game]
+    # Save cleaned DataFrame into app state
+    app_state["operator_df"] = df
+    messagebox.showinfo("Success", "Operator sheet loaded!")
 
-        # Check if the game exists in both files (NEED TO EXPAN LOGIC FOR MISSING GAMES)
-        if not matching_row.empty:
-            # Create a dictionary to store differences
-            diff_dict = {'Game': game}
 
-            # Compare specified fields
-            for col1, col2 in zip(columns_to_compare1, columns_to_compare2):
-                # Check if the column exists in excel_df2
-                if col2 in excel_df2.columns:
-                    value1 = matching_row[col1].iloc[0]
-                    value2 = row[col2]
+def load_report_sheet():
+    file = filedialog.askopenfilename(filetypes=[("Excel Files", "*.xlsx")])
+    if not file:
+        return
 
-                    # Check for differences
-                    if value1 != value2:
-                        diff_dict[col1 + '_diff'] = f"{value1} (File 1) != {value2} (File 2)"
-                    else:
-                        diff_dict[col1 + '_diff'] = ''
+    # Step 1: Read the first 10 rows without assuming headers
+    preview_df = pd.read_excel(file, header=None, nrows=10)
 
-            # Append the differences to the DataFrame
-            differences = pd.concat([differences, pd.DataFrame([diff_dict])], ignore_index=True)
+    header_row = None
+    for i, row in preview_df.iterrows():
+        if 'Game ID' in row.values or 'Denom' in row.values:
+            header_row = i
+            break
 
-    # Output the differences to a new Excel file (Could get fancy with color coding...or KISS)
-    output_file = filedialog.asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel Files", "*.xlsx")])
-    differences.to_excel(output_file, index=False)
+    if header_row is None:
+        messagebox.showerror("Error", "Could not find header row in report sheet.")
+        return
 
-    print(f"Differences found and saved to {output_file}")
+    # Step 2: Read the file starting from the correct header row
+    df = pd.read_excel(file, skiprows=header_row)
+    df.columns = df.columns.str.strip()
+
+    # Step 3: Rename and clean up
+    df = df.rename(columns=column_mapping)
+    # print("[DEBUG] Columns after renaming:", df.columns.tolist())
+
+    if 'Default Line/Ways' in df.columns:
+        df['Default Line/Ways'] = df['Default Line/Ways'].astype(str).str.strip()
+
+    if 'Game' not in df.columns:
+        messagebox.showerror("Error", "'Game' column not found after renaming.")
+        return
+
+    df['Game'] = df['Game'].apply(normalize_game_id)    
+    
+    df = df.drop_duplicates(subset='Game')
+
+    app_state["report_df"] = df
+    messagebox.showinfo("Success", "Report sheet loaded!")
+
+
+def run_audit():
+    operator_df = app_state.get("operator_df")
+    report_df = app_state.get("report_df")
+
+    if operator_df is None or report_df is None:
+        messagebox.showwarning("Missing Data", "Please load both sheets first!")
+        return
+
+    differences = []
+
+    for _, operator_row in operator_df.iterrows():
+        game_id = operator_row['Game']
+        matching_row = report_df[report_df['Game'] == game_id]
+
+        if matching_row.empty:
+            differences.append({
+                'Game': game_id,
+                'Field': '',
+                'Operator Value': '',
+                'Report Value': '',
+                'Issue': 'Missing in Report Sheet',
+                'Source': 'Operator'
+            })
+            continue
+
+        matching_row = matching_row.iloc[0]
+
+        for col in operator_columns[1:]:
+            op_val = normalize_value(operator_row[col])
+            rep_val = normalize_value(matching_row[col])
+
+            if op_val != rep_val:
+                # print(f"DEBUG Mismatch for {col} | Operator: {op_val} | Report: {rep_val}")
+                differences.append({
+                    'Game': game_id,
+                    'Field': col,
+                    'Operator Value': operator_row[col],
+                    'Report Value': matching_row[col],
+                    'Issue': 'Mismatch',
+                    'Source': 'Both'
+                })
+
+    # Also check for games in report but missing in operator
+    operator_game_ids = set(operator_df['Game'])
+    report_game_ids = set(report_df['Game'])
+
+    missing_in_operator = report_game_ids - operator_game_ids
+
+    for game_id in missing_in_operator:
+        differences.append({
+            'Game': game_id,
+            'Field': '',
+            'Operator Value': '',
+            'Report Value': '',
+            'Issue': 'Missing in Operator Sheet',
+            'Source': 'Report'
+        })
+
+    if not differences:
+        messagebox.showinfo("Audit Complete", "No differences found!")
+        return
+
+    # Convert to DataFrame and save
+    diff_df = pd.DataFrame(differences)
+    diff_df = diff_df[['Game', 'Field', 'Operator Value', 'Report Value', 'Issue', 'Source']]
+    diff_df = diff_df.sort_values(by=['Game', 'Issue', 'Field'], ignore_index=True)
+
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    save_path = filedialog.asksaveasfilename(defaultextension=".xlsx",
+                                             initialfile=f"Audit_Report_{timestamp}.xlsx",
+                                             filetypes=[("Excel Files", "*.xlsx")])
+    if save_path:
+        diff_df.to_excel(save_path, index=False)
+        messagebox.showinfo("Success", f"Audit complete! Report saved:\n{save_path}")
+        import subprocess
+        import platform
+
+        # Open the file automatically after saving
+        if platform.system() == 'Windows':
+            os.startfile(save_path)
+        elif platform.system() == 'Darwin':  # macOS
+            subprocess.call(['open', save_path])
+        else:  # Linux or others
+            subprocess.call(['xdg-open', save_path])
 
 
 # ---------- UI handling ---------- #
@@ -100,15 +252,25 @@ window = Tk()
 window.title("Auto Project")
 window.config(padx=50, pady=50)
 
-logo_photo = PhotoImage(file="AutoProject.png")
+#pic_dir = os.path.dirname("AutoProject.png")
+#img_path = "C:/Users/seth.jamieson/Desktop/Auditor/AutoProject.png"
+
+# safe robust way to get pathing for whatever logo is chosen and to get around any weirdness.
+logo_placeholder = "AutoProject.png"
+pathtopic = os.path.join(os.path.dirname(__file__),logo_placeholder)
+logo_photo = PhotoImage(file=pathtopic)
+#logo_photo = PhotoImage(file="AutoProject.png") #old way to set logo photo but was somehwat broken
+
 canvas = Canvas(width=500, height=500)
 canvas.create_image(250, 250, image=logo_photo)
 canvas.grid(column=1, row=0)
 
 # BUTTONS #
-upload_button = Button(text="FIRST Select operator excel sheet", width=36, command=user_first_upload)
-upload_button.grid(column=1, row=4, columnspan=2, sticky=E + W) # Ugh, I dont remember how I found the sticky=E + W fix
-search_button = Button(text="Select active data and audit", command=audit_function)
-search_button.grid(column=2, row=1, sticky=E + W)
+upload_operator_button = Button(text="FIRST Operator sheet", width=24, command=load_operator_sheet)
+upload_operator_button.grid(column=0, row=4) # sticky=E + W if needed Ugh, I dont remember how I found the sticky=E + W fix
+upload_report_button = Button(text="Second Report sheet", width=24, command=load_report_sheet)
+upload_report_button.grid(column=1, row=4) # sticky=E + W Ugh, I dont remember how I found the sticky=E + W fix
+audit_it_button = Button(text="Third: Run Audit", width=24, command=run_audit)
+audit_it_button.grid(column=2, row=4)
 
 window.mainloop()
