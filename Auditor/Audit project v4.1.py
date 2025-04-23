@@ -67,7 +67,7 @@ class CompareFiles:
         self.upload_operatorsheet.pack(pady=20)
 
         #Submit button
-        self.submit_button = tk.Button(self.root, text="SUBMIT BOTH FILES", font=("TkDefaultFont", 12, "bold"), command=self.submit_files, state=tk.DISABLED)
+        self.submit_button = tk.Button(self.root, text="SUBMIT FILES", font=("TkDefaultFont", 12, "bold"), command=self.submit_files, state=tk.DISABLED)
         self.submit_button.pack(pady=30)
 
     def enable_submit_button(self):
