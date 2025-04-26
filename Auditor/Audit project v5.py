@@ -13,8 +13,8 @@ from pathlib import Path #module for modern object-oriented way to handle filesy
 class CompareFiles:
     def __init__(self, root):
         self.root = root #Assigns Tkinter root window
-        self.root.title("Wager Audit Comparison Tool") #Window title
-        self.root.configure(bg="white") #Set window background color to white
+        self.root.title("Audit Comparison Tool") #Window title
+        self.root.configure(bg="#2b2b2b") #Set window background color to white
 
         self.wageraudit_path = "" #path for Wager Audit csv file
         self.operatorsheet_path = "" #path for Op Wager Config Excel sheet file
@@ -22,77 +22,126 @@ class CompareFiles:
         self.agilereport_path = "" #path for the Agile PLM Excel Report
         self.create_widgets() #method to create UI components
 
+        #set window size and center it
+        self.adjust_window(root)
         #setting default and min size settings
-        self.root.geometry("600x600") 
-        self.root.minsize(600, 600)
-        self.adjust_window() #method to center the window on the screen
+        self.root.geometry("800x650") 
+        self.root.minsize(800, 650)
 
-    def adjust_window(self):
+    def adjust_window(self, root):
         #Get the screen's full width/height
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
 
         #Defines the desired window dimensions
-        window_width = 600
-        window_height = 600
+        window_width = 800
+        window_height = 650
 
-        #Calculate the top-left corner position to center the window
-        position_top = int(screen_height / 2 - window_height / 2)
-        position_left = int(screen_width / 2 - window_width / 2)
+        #Calculate position to center the window
+        position_top = (screen_height - window_height) // 2
+        position_left = (screen_width - window_width) // 2
 
         #Update the window's geometry to apply size and position
-        self.root.geometry(f'{window_width}x{window_height}+{position_left}+{position_top}')
+        root.geometry(f'{screen_width}x{window_height}+{position_left}+{position_top}')
 
     def create_widgets(self):
-        #Welcome display text
-        welcome_text = "\nWager Audit Comparison Tool"
- 
-        #Welcome label
-        self.welcome_label = tk.Label(self.root, text=welcome_text, font=("TkDefaultFont", 12, "bold"), fg='black', bg='white')
-        self.welcome_label.pack(pady=20)
+        #Main content for all buttons/labels
+        content_frame = tk.Frame(self.root, bg="#2b2b2b", height=300)
+        content_frame.pack(fill="both", expand=True, padx=20, pady=10)
 
-        #Wager Audit label
-        self.wageraudit_label = tk.Label(self.root, text="No csv file currently selected for the Wager Audit", fg='red', bg='white')
-        self.wageraudit_label.pack(pady=2)
+        #button style for all buttons
+        button_style = {
+            "bg": "#6e6e6e",
+            "fg": "white",
+            "activebackground": "#505050",
+            "activeforeground": "white",
+            "borderwidth": 1,
+            "highlightthickness": 0,
+            "font": ("TkDefaultFont", 10, "bold")
+        }
+        
+        label_style = {
+            "bg": "#2b2b2b",
+            "fg": "#FF6F6F",
+            "padx": 10,
+            "pady": 2,
+            "font": ("TkDefaultFont", 10)
+        }
 
-        #Wager Audit file upload button
-        self.upload_wageraudit = tk.Button(self.root, text="Upload Wager Audit csv file", command=self.upload_wageraudit)
-        self.upload_wageraudit.pack(pady=15)
+        #Welcome display text and label
+        welcome_text = "Audit Comparison Tool\n"
+        self.welcome_label = tk.Label(content_frame, text=welcome_text, font=("TkDefaultFont", 15, "bold"), fg='white', bg='#2b2b2b')
+        self.welcome_label.pack(pady=10)
 
-        #Operator Wager Config Sheet label
-        self.operatorsheet_label = tk.Label(self.root, text="No Excel file currently selected for the Operator Wager Config Sheet", fg='red', bg='white')
-        self.operatorsheet_label.pack(pady=2)
+        #Wager Audit label and upload button
+        self.wageraudit_label = tk.Label(content_frame, text="No Wager Audit csv file currently selected", **label_style)
+        self.wageraudit_label.pack()
+        self.upload_wageraudit = tk.Button(content_frame, text="Upload Wager Audit csv file", command=self.upload_wageraudit, **button_style)
+        self.upload_wageraudit.pack(pady=20)
+        self.button_hover_effect(self.upload_wageraudit)
 
-        #Operator Sheet Button
-        self.upload_operatorsheet = tk.Button(self.root, text="Upload Operator Wager Config Excel Sheet", command=self.upload_operatorsheet)
+        #Operator Wager Config Sheet label and upload button
+        self.operatorsheet_label = tk.Label(content_frame, text="No Operator Wager Config Excel Sheet currently selected", **label_style)
+        self.operatorsheet_label.pack()
+        self.upload_operatorsheet = tk.Button(content_frame, text="Upload Operator Wager Config Excel Sheet", command=self.upload_operatorsheet, **button_style)
         self.upload_operatorsheet.pack(pady=15)
+        self.button_hover_effect(self.upload_operatorsheet)
 
-        #Operator GameList Report label
-        self.opgamelist_report_label = tk.Label(self.root, text="No csv file currently selected for the Operator GameList Report", fg='red', bg='white')
-        self.opgamelist_report_label.pack(pady=2)
-
-        #Operator GameList Report button
-        self.upload_opgamelist_report = tk.Button(self.root, text="Upload Operator GameList csv Report", command=self.upload_opgamelist_report)
+        #Operator GameList Report label and upload button
+        self.opgamelist_report_label = tk.Label(content_frame, text="No Operator GameList csv Report currently selected", **label_style)
+        self.opgamelist_report_label.pack()
+        self.upload_opgamelist_report = tk.Button(content_frame, text="Upload Operator GameList csv Report", command=self.upload_opgamelist_report, **button_style)
         self.upload_opgamelist_report.pack(pady=15)
+        self.button_hover_effect(self.upload_opgamelist_report)
 
-        #Agile PLM Report label
-        self.agilereport_label = tk.Label(self.root, text="No Excel file currently selected for the Agile PLM Report", fg='red', bg='white')
-        self.agilereport_label.pack(pady=2)
-
-        #Agile PLM Report button
-        self.upload_agilereport = tk.Button(self.root, text="Upload Agile PLM Excel Report", command=self.upload_agilereport)
+        #Agile PLM Report label and upload button
+        self.agilereport_label = tk.Label(content_frame, text="No Agile PLM Excel Report currently selected", **label_style)
+        self.agilereport_label.pack()
+        self.upload_agilereport = tk.Button(content_frame, text="Upload Agile PLM Excel Report", command=self.upload_agilereport, **button_style)
         self.upload_agilereport.pack(pady=15)
+        self.button_hover_effect(self.upload_agilereport)
+
+        #Frame for submit/clear buttons side by side
+        action_frame = tk.Frame(content_frame, bg="#2b2b2b")
+        action_frame.pack(pady=20)
 
         #Submit button
-        self.submit_button = tk.Button(self.root, text="SUBMIT FILES", font=("TkDefaultFont", 12, "bold"), command=self.submit_files, state=tk.DISABLED)
-        self.submit_button.pack(pady=30)
+        self.submit_button = tk.Button(action_frame, text="SUBMIT FILES", font=("TkDefaultFont", 12, "bold"), command=self.submit_files, state=tk.DISABLED, fg='white', bg="#FF6F6F", borderwidth=1)
+        self.submit_button.pack(pady=15)
+        self.button_hover_effect(self.submit_button)
+
+        #Clear button
+        self.clear_button = tk.Button(action_frame, text="CLEAR FILES", font=("TkDefaultFont", 12, "bold"), command=self.clear_button, fg='white', bg="#6e6e6e", borderwidth=1)
+        self.clear_button.pack(pady=15)
+        self.button_hover_effect(self.clear_button)
+
+    #Adds a hover effect to the buttons
+    def button_hover_effect(self, button, hover_bg="#5a5a5a", normal_bg="#6e6e6e"):
+        #Takes into consideration the submit buttons color effects of green/red
+        def on_enter(e):
+            if button.cget("state") == tk.NORMAL:
+                if button.cget("bg") != "green":
+                    button.config(bg=hover_bg)
+
+        def on_leave(e):
+            if button.cget("state") == tk.NORMAL:
+                if button.cget("bg") == hover_bg:
+                    button.config(bg=normal_bg)
+            else:
+                button.config(bg="#FF6F6F")
+
+        #Bind hover effect to the button
+        button.bind("<Enter>", on_enter)
+        button.bind("<Leave>", on_leave)
 
     def enable_submit_button(self):
-        #Enables the submit button if both files are not empty and turns green. Displays red if only one is selected and remains disabled
-        if self.wageraudit_path and self.operatorsheet_path and self.opgamelist_report_path and self.agilereport_path:
-            self.submit_button.config(state=tk.NORMAL, bg='green', fg='black')
+        #Enables the submit button if files are not empty and turns green. Displays red if no files are selected and remains disabled
+        if all([self.wageraudit_path, self.operatorsheet_path, self.opgamelist_report_path, self.agilereport_path]):
+            self.submit_button.config(state=tk.NORMAL, bg='green')
         else:
-            self.submit_button.config(state=tk.DISABLED, bg='red', fg='black')
+            self.submit_button.config(state=tk.DISABLED, bg='#FF6F6F')
+
+        self.button_hover_effect(self.submit_button)
 
     def upload_wageraudit(self):
         #Allows user to upload excel or csv files
@@ -101,14 +150,14 @@ class CompareFiles:
         #Checks if a file is selected
         if self.wageraudit_path:
             #Displays file name once selected and updates label from red to green
-            self.wageraudit_label.config(text=f"Wager Audit csv file uploaded: \n{self.wageraudit_path.split('/')[-1]}", fg='green')
+            self.wageraudit_label.config(text=f"Wager Audit csv file uploaded: \n{self.wageraudit_path.split('/')[-1]}", fg='#90EE90')
             
         else:
             #Show warning if no wager audit file is selected
-            messagebox.showwarning("Missing Wager Audit csv file!", "Please select the Wager Audit csv file to proceed.")
+            messagebox.showwarning("Missing File!", "Please select the Wager Audit csv file to proceed.")
             #Update label to indicate no file is selected and turn label text red
-            self.wageraudit_label.config(text="No csv file currently selected for the Wager Audit.", fg='red')
-            self.wageraudit_path = None
+            self.wageraudit_label.config(text="No csv file currently selected for the Wager Audit", fg='#FF6F6F')
+            self.wageraudit_path = "" if not self.wageraudit_path else self.wageraudit_path
 
         #Enables submit button after selection
         self.enable_submit_button()
@@ -120,14 +169,14 @@ class CompareFiles:
         #Checks if a file is selected
         if self.operatorsheet_path:
             #Displays file name once selected and updates label from red to green
-            self.operatorsheet_label.config(text=f"Operator Wager Config Excel Sheet uploaded: \n{self.operatorsheet_path.split('/')[-1]}", fg='green')
+            self.operatorsheet_label.config(text=f"Operator Wager Config Excel Sheet uploaded: \n{self.operatorsheet_path.split('/')[-1]}", fg='#90EE90')
 
         else:
             #Show warning if no operator wager config sheet is selected
-            messagebox.showwarning("Missing Operator Wager Config Excel Sheet!", "Please select the Operator Wager Config Excel Sheet to proceed.")
+            messagebox.showwarning("Missing File!", "Please select the Operator Wager Config Excel Sheet to proceed.")
             #Update label to indicate no file is selected and turn label text red
-            self.operatorsheet_label.config(text="No Excel file currently selected for the Operator Wager Config Sheet.", fg='red')
-            self.operatorsheet_path = None
+            self.operatorsheet_label.config(text="No Operator Wager Config Excel Sheet currently selected", fg='#FF6F6F')
+            self.operatorsheet_path = "" if not self.operatorsheet_path else self.operatorsheet_path
 
         #Enables submit button after selection
         self.enable_submit_button()
@@ -136,12 +185,12 @@ class CompareFiles:
         self.opgamelist_report_path = filedialog.askopenfilename(filetypes=[("Excel Files","*.xlsx;*.xls"), ("CSV Files", "*.csv")])
 
         if self.opgamelist_report_path:
-            self.opgamelist_report_label.config(text=f"Operator GameList csv Report uploaded: \n{self.opgamelist_report_path.split('/')[-1]}", fg='green')
+            self.opgamelist_report_label.config(text=f"Operator GameList csv Report uploaded: \n{self.opgamelist_report_path.split('/')[-1]}", fg='#90EE90')
 
         else:
-            messagebox.showwarning("Missing Operator GameList Report!", "Please select the Operator GameList csv Report to proceed.")
-            self.opgamelist_report_label.config(text="No csv file currently selected for the Operator GameList Report.", fg='red')
-            self.opgamelist_report_path = None
+            messagebox.showwarning("Missing File!", "Please select the Operator GameList csv Report to proceed.")
+            self.opgamelist_report_label.config(text="No csv file currently selected for the Operator GameList Report", fg='#FF6F6F')
+            self.opgamelist_report_path = "" if not self.opgamelist_report_path else self.opgamelist_report_path
 
         self.enable_submit_button()
 
@@ -149,16 +198,21 @@ class CompareFiles:
         self.agilereport_path = filedialog.askopenfilename(filetypes=[("Excel Files","*.xlsx;*.xls"), ("CSV Files", "*.csv")])
 
         if self.agilereport_path:
-            self.agilereport_label.config(text=f"Agile PLM Excel Report uploaded: \n{self.agilereport_path.split('/')[-1]}", fg='green')
+            self.agilereport_label.config(text=f"Agile PLM Excel Report uploaded: \n{self.agilereport_path.split('/')[-1]}", fg='#90EE90')
 
         else:
-            messagebox.showwarning("Missing Agile PLM Report!", "Please select the Agile PLM Excel Report to proceed.")
-            self.agilereport_label.config(text="No Excel file currently selected for the Agile PLM Report.", fg='red')
-            self.agilereport_path = None
+            messagebox.showwarning("Missing File!", "Please select the Agile PLM Excel Report to proceed.")
+            self.agilereport_label.config(text="No Excel file currently selected for the Agile PLM Report", fg='#FF6F6F')
+            self.agilereport_path = "" if not self.agilereport_path else self.agilereport_path
 
         self.enable_submit_button()
 
     def submit_files(self):
+        #Checks if all files are uploaded
+        if not all([self.wageraudit_path, self.operatorsheet_path, self.opgamelist_report_path, self.agilereport_path]):
+            messagebox.showwarning("Incomplete files!", "Please upload all files before submitting.")
+            return
+        
         #Creates a tkinter root window
         root = tk.Tk()
         root.withdraw() #Hides the root window (so it doesn't pop up)
@@ -167,17 +221,17 @@ class CompareFiles:
         file_path = filedialog.asksaveasfilename(
             defaultextension=".xlsx",
             filetypes=[("Excel files", "*.xlsx"), ("All files", "*.*")], #file types filter
-            title="Select location to save file" #dialog title
+            title="File Save Location" #dialog title
         )
 
         if not file_path:
             #If no file path selected, show cancelled message
-            messagebox.showinfo("No file path selected!", "Select a file path and try again.")
+            messagebox.showinfo("Missing File Path!", "Select a file path and try again.")
             self.enable_submit_button()
             return
 
         #Message box to confirm files for submission and allows for user to hit cancel
-        if messagebox.askyesno("Confirm", "Are you sure you would like to submit all the files selected for comparison?"):
+        if messagebox.askyesno("Confirm", "Are you sure you want to submit the selected files for comparison?"):
             try:
                 #Call the function to compare files and save
                 result = self.compare_files(file_path)
@@ -186,18 +240,33 @@ class CompareFiles:
                     messagebox.showinfo("Saved!", f"File successfully saved at: {file_path}.")
                 else:
                     #If the result indicates failure, show failure message
-                    messagebox.showerror("Error!", "Failed to save file. Please fix errors and try again.")
+                    messagebox.showerror("Error!", "Failed to save file. Please check the correct files were submitted and try again.")
 
             except Exception as e:
                 #Show error if there's an exception while saving files
-                messagebox.showerror("Error!", f"An error has occured during export: {str(e)}")
+                messagebox.showerror("Error!", f"Error occurred during export: {str(e)}")
             
         else:
             #If user cancels, display cancelled message
-            messagebox.showinfo("Cancelled!", "This has been cancelled. Please upload all required files and hit submit to try again.")
+            messagebox.showinfo("Cancelled!", "File submission cancelled. Please upload all required files to submit and try again.")
 
         #Resets submit button to it's default state after handling success, cancellation, or missing file path
         self.enable_submit_button()
+
+    def clear_button(self):
+        #Clear file paths
+        self.wageraudit_path = ""
+        self.operatorsheet_path = ""
+        self.opgamelist_report_path = ""
+        self.agilereport_path = ""
+
+        self.wageraudit_label.config(text="No Wager Audit csv file currently selected", fg="#FF6F6F")
+        self.operatorsheet_label.config(text="No Operator Wager Config Excel Sheet currently selected", fg="#FF6F6F")
+        self.opgamelist_report_label.config(text="No Operator GameList csv Report currently selected", fg="#FF6F6F")
+        self.agilereport_label.config(text="No Agile PLM Excel Report currently selected", fg="#FF6F6F")
+
+        #Disable the submit button
+        self.submit_button.config(state=tk.DISABLED, bg="#FF6F6F")
 
     def normalize_name(self, name):
         #to standardize game name column; convert to lowercase, removes all spaces, removes apostrophes
@@ -667,7 +736,7 @@ class CompareFiles:
                         #Define formats
                         header_format = workbook.add_format({'bg_color': '#D9D9D9', 'bold': True, 'border': 2, 'text_wrap': True}) #Grey header format (bold, thick borders)
                         cell_format = workbook.add_format({'border': 1, 'border_color': '#BFBFBF'}) #borders for data cells
-                        red_format = workbook.add_format({'bg_color': '#FF0000'}) #Red format highlights cells red when there's a mismatch on the Wager Audit Comparison Results
+                        red_format = workbook.add_format({'bg_color': '#FF6F6F'}) #Red format highlights cells red when there's a mismatch on the Wager Audit Comparison Results
 
                         #Loop & apply formats to all sheets
                         for df, sheet_name in [
