@@ -633,13 +633,13 @@ class CompareFiles:
                 opgamelist_file = opgamelist_file.fillna('N/A')
                 agilereport_file = agilereport_file.fillna('N/A')
 
+                #Removes duplicates in both DataFrames to ensure it only appears once
+                opgamelist_file = opgamelist_file.drop_duplicates(subset='Game')
+                agilereport_file = agilereport_file.drop_duplicates(subset='Game', keep='last') #keeps last listed version as it is the latest approved per the Agile PLM Report specifically
+
                 #Sorts 'Game' column alphabetically in both DataFrames
                 opgamelist_file = opgamelist_file.sort_values(by='Game', ascending=True)
                 agilereport_file = agilereport_file.sort_values(by='Game', ascending=True)
-
-                #Removes duplicates in both DataFrames to ensure it only appears once
-                opgamelist_file = opgamelist_file.drop_duplicates(subset='Game')
-                agilereport_file = agilereport_file.drop_duplicates(subset='Game')
 
                 #Ensures both DataFrames have only matching Game values
                 common_games_version = set(opgamelist_file['Game']).intersection(set(agilereport_file['Game']))
