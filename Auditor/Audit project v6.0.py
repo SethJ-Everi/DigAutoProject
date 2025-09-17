@@ -953,7 +953,7 @@ class CompareFiles:
                                                     worksheet.write(row, col_idx + 1, safe_val2, red_format)
                                                     worksheet.write(row, col_idx + 2, safe_val3)
 
-                                                elif safe_val1 == safe_val3: #If val2 and val3 match, val1 is different
+                                                elif safe_val2 == safe_val3: #If val2 and val3 match, val1 is different
                                                     worksheet.write(row, col_idx, safe_val1, red_format)
                                                     worksheet.write(row, col_idx + 1, safe_val2)
                                                     worksheet.write(row, col_idx + 2, safe_val3)
@@ -983,3 +983,4 @@ if __name__ =="__main__":
     root = tk.Tk()
     app = CompareFiles(root)
     root.mainloop()
+
