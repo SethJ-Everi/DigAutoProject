@@ -64,7 +64,7 @@ class WagerAuditProgram:
         content_frame.pack(fill="both", expand=True, padx=20, pady=10)
 
         #Welcome display text
-        welcome_text = "\nWager Audit \nComparison Tool\n"
+        welcome_text = "\nWager\nAudit Comparison Tool\n"
         self.welcome_label = tk.Label(content_frame, text=welcome_text, font=("TkDefaultFont", 15, "bold"), fg='white', bg='#2b2b2b')
         self.welcome_label.pack(pady=10)
 
@@ -248,7 +248,7 @@ class WagerAuditProgram:
 
     def clear_button(self):
         answer = messagebox.askyesno(
-            "Confirm Clear?",
+            "Confirm Clear",
             "Are you sure you want to clear all files selected?"
         )
         if answer:
