@@ -5,6 +5,7 @@ from WagerAudit import WagerAuditProgram
 from JurisdictionGameVersionAudit import JurisdictionGameVersionAuditProgram
 from GameVersionAudit import GameVersionAuditProgram
 
+
 class AuditToolSelector:
     def __init__(self, master):
         self.master = master
@@ -45,7 +46,7 @@ class AuditToolSelector:
         else:
             messagebox.showinfo(
                 "Canceled!",
-                "Close cancelled."
+                "Close canceled."
             )
 
     def main_widgets(self):
@@ -54,7 +55,7 @@ class AuditToolSelector:
         content_frame.pack(fill="both", expand=True, padx=20, pady=10)
 
         #Welcome display text and label
-        welcome_text = "\nAudit Comparison Tool\n Select Audit Type"
+        welcome_text = "\nAudit Comparison Tool\nSelect Audit Type\n"
         self.welcome_label = tk.Label(content_frame, text=welcome_text, font=("TkDefaultFont", 15, "bold"), fg='white', bg='#2b2b2b')
         self.welcome_label.pack(pady=10)
 
@@ -79,9 +80,9 @@ class AuditToolSelector:
             "highlightthickness": 0,
             "font": ("TkDefaultFont", 10, "bold")
         }
-        
+
         #Wager and Game Version Audit button
-        self.fullAudit_button = tk.Button(group_container, text="Wager & Game Version Audit", width=35, command=lambda: FullAuditProgram(master=self.master), **button_style)
+        self.fullAudit_button = tk.Button(group_container, text="Wager & Game/Math Version Audit", width=35, command=lambda: FullAuditProgram(master=self.master), **button_style)
         self.fullAudit_button.pack(pady=(10))
         self.button_hover_effect(self.fullAudit_button)
 
