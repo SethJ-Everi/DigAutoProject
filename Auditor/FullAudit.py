@@ -10,10 +10,11 @@ import unicodedata #module for the Unicode Character Database
 from pathlib import Path #module for modern object-oriented way to handle filesystem paths
 from difflib import SequenceMatcher #Import SequenceMatcher for computing similarity between two strings
 
+
 class FullAuditProgram:
     def __init__(self, master=None):
         self.window = tk.Toplevel(master)
-        self.window.title("Wager & Game Version Audit Comparison Tool") #window title
+        self.window.title("Wager & Game/Math Version Audit Comparison Tool") #window title
         self.window.configure(bg="#2b2b2b") #set window background color to white
 
         self.window.protocol("WM_DELETE_WINDOW", self.close_window) #X button will confirm if user wants to close
@@ -34,15 +35,15 @@ class FullAuditProgram:
 
     def close_window(self): #Function for cancel confirmation
         confirm = messagebox.askyesno(
-            "Exit Wager & Game Version Audit",
-            "Are you sure you want to close the Wager & Game Version Audit?"
+            "Exit Wager & Game/Math Version Audit",
+            "Are you sure you want to close the Wager & Game/Math Version Audit?"
         )
         if confirm:
             self.window.destroy() #To close this window only
         else:
             messagebox.showinfo(
                 "Canceled!",
-                "Close cancelled."
+                "Close canceled."
             )
 
     def adjust_window(self):
@@ -67,7 +68,7 @@ class FullAuditProgram:
         content_frame.pack(fill="both", expand=True, padx=20, pady=10)
 
         #Welcome display text and label
-        welcome_text = "\nWager & Game Version \nAudit Comparison Tool\n"
+        welcome_text = "\nWager & Game/Math Version\nAudit Comparison Tool\n"
         self.welcome_label = tk.Label(content_frame, text=welcome_text, font=("TkDefaultFont", 15, "bold"), fg='white', bg='#2b2b2b')
         self.welcome_label.pack(pady=10)
 
@@ -108,7 +109,7 @@ class FullAuditProgram:
         self.wagerAudit_Staging_label.pack(pady=(0, 5))
         self.wagerAudit_Staging_button = tk.Button(left_group, text="Upload Staging Wager Audit File", width=38, command=self.upload_wagerAudit_Staging, **button_style)
         self.wagerAudit_Staging_button.pack(pady=(0, 10))
-        self.button_hover_effect(self.wagerAudit_Staging_button) 
+        self.button_hover_effect(self.wagerAudit_Staging_button)
 
         #Production Wager Audit label and upload button
         self.wagerAudit_Production_label = tk.Label(left_group, text="Select Production Wager Audit File", **label_style)
@@ -195,7 +196,7 @@ class FullAuditProgram:
 
     def clear_button(self):
         answer = messagebox.askyesno(
-            "Confirm Clear?",
+            "Confirm Clear",
             "Are you sure you want to clear all files selected?"
         )
         if answer:
@@ -237,7 +238,7 @@ class FullAuditProgram:
         if self.wagerAudit_Staging_path: #Checks if a file is selected
             self.wagerAudit_Staging_label.config(text=f"Staging Wager Audit File Uploaded: \n{self.wagerAudit_Staging_path.split('/')[-1]}", fg='#90EE90') #Displays file name once selected/updates label from red to green
         else:
-            messagebox.showwarning("Missing File!", "Please select Staging Wager Audit File to proceed.") #Show warning if no staging wager audit file is selected
+            messagebox.showwarning("Missing File!", "Select Staging Wager Audit File to proceed.") #Show warning if no staging wager audit file is selected
             self.wagerAudit_Staging_label.config(text="Select Staging Wager Audit File", fg='#FF6F6F') #Update label to indicate no file is selected/turn label text red
             self.wagerAudit_Staging_path = "" if not self.wagerAudit_Staging_path else self.wagerAudit_Staging_path
         self.enable_submit_button() #Enables submit button after selection
@@ -251,10 +252,10 @@ class FullAuditProgram:
         if self.wagerAudit_Production_path: #Checks if a file is selected
             self.wagerAudit_Production_label.config(text=f"Wager Production Audit File Uploaded: \n{self.wagerAudit_Production_path.split('/')[-1]}", fg='#90EE90') #Displays file name once selected/updates label from red to green
         else:
-            messagebox.showwarning("Missing File!", "Please select Production Wager Audit File to proceed.") #Show warning if no production wager audit file is selected
+            messagebox.showwarning("Missing File!", "Select Production Wager Audit File to proceed.") #Show warning if no production wager audit file is selected
             self.wagerAudit_Production_label.config(text="Select Production Wager Audit File", fg='#FF6F6F') #Update label to indicate no file is selected/turn label text red
             self.wagerAudit_Production_path = "" if not self.wagerAudit_Production_path else self.wagerAudit_Production_path
-        self.enable_submit_button() #Enables submit button after selection 
+        self.enable_submit_button() #Enables submit button after selection
 
     def upload_operatorWagerSheet(self):
         self.operator_wagerSheet_path = filedialog.askopenfilename(
@@ -265,7 +266,7 @@ class FullAuditProgram:
         if self.operator_wagerSheet_path: #Checks if a file is selected
             self.operator_wagerSheet_label.config(text=f"Operator Wager Configuration Sheet Uploaded: \n{self.operator_wagerSheet_path.split('/')[-1]}", fg='#90EE90') #Displays file name once selected/updates label from red to green
         else:
-            messagebox.showwarning("Missing File!", "Please select Operator Wager Configuration Sheet to proceed.") #Show warning if no op wager config sheet is selected
+            messagebox.showwarning("Missing File!", "Select Operator Wager Configuration Sheet to proceed.") #Show warning if no op wager config sheet is selected
             self.operator_wagerSheet_label.config(text="Select Operator Wager Configuration Sheet", fg='#FF6F6F') #Update label to indicate no file is selected/turn label text red
             self.operator_wagerSheet_path = "" if not self.operator_wagerSheet_path else self.operator_wagerSheet_path
         self.enable_submit_button() #Enables submit button after selection
@@ -279,7 +280,7 @@ class FullAuditProgram:
         if self.opGameList_stagingReport_path: #Checks if a file is selected
             self.opGameList_stagingReport_label.config(text=f"Staging Operator GameList Report Uploaded: \n{self.opGameList_stagingReport_path.split('/')[-1]}", fg='#90EE90') #Displays file name once selected/updates label from red to green
         else:
-            messagebox.showwarning("Missing File!", "Please select Staging Operator GameList Report to proceed.") #Show warning if no staging op gamelist report is selected 
+            messagebox.showwarning("Missing File!", "Select Staging Operator GameList Report to proceed.") #Show warning if no staging op gamelist report is selected
             self.opGameList_stagingReport_label.config(text="Select Staging Operator GameList Report", fg='#FF6F6F') #Update label to indicate no file is selected/turn label text red
             self.opGameList_stagingReport_path = "" if not self.opGameList_stagingReport_path else self.opGameList_stagingReport_path
         self.enable_submit_button() #Enables submit button after selection
@@ -293,7 +294,7 @@ class FullAuditProgram:
         if self.opGameList_productionReport_path: #Checks if a file is selected
             self.opGameList_productionReport_label.config(text=f"Production Operator GameList Report Uploaded: \n{self.opGameList_productionReport_path.split('/')[-1]}", fg='#90EE90') #Displays file name once selected/updates label from red to green
         else:
-            messagebox.showwarning("Missing File!", "Please select Production Operator GameList Report to proceed.") #Show warning if no production op gamelist report is selected 
+            messagebox.showwarning("Missing File!", "Select Production Operator GameList Report to proceed.") #Show warning if no production op gamelist report is selected
             self.opGameList_productionReport_label.config(text="Select Production Operator GameList Report", fg='#FF6F6F') #Update label to indicate no file is selected/turn label text red
             self.opGameList_productionReport_path = "" if not self.opGameList_productionReport_path else self.opGameList_productionReport_path
 
@@ -306,7 +307,7 @@ class FullAuditProgram:
         if self.agileReport_path: #Checks if a file is selected
             self.agileReport_label.config(text=f"Agile PLM Report Uploaded: \n{self.agileReport_path.split('/')[-1]}", fg='#90EE90') #Displays file name once selected/updates label from red to green
         else:
-            messagebox.showwarning("Missing File!", "Please select Agile PLM Report to proceed.") #Show warning if no agile plm report is selected
+            messagebox.showwarning("Missing File!", "Select Agile PLM Report to proceed.") #Show warning if no agile plm report is selected
             self.agileReport_label.config(text="Select Agile PLM Report", fg='#FF6F6F') #Update label to indicate no file is selected/turn label text red
             self.agileReport_path = "" if not self.agileReport_path else self.agileReport_path
         self.enable_submit_button() #Enables submit button after selection
@@ -314,7 +315,7 @@ class FullAuditProgram:
     def submit_files(self):
         #Checks if all files are uploaded
         if not all([self.wagerAudit_Staging_path, self.wagerAudit_Production_path, self.operator_wagerSheet_path, self.opGameList_stagingReport_path, self.opGameList_productionReport_path, self.agileReport_path]):
-            messagebox.showwarning("Incomplete files!", "Please upload all required files before submitting.") #Show warning if not all files were uploaded
+            messagebox.showwarning("Incomplete files!", "Upload all required files before submitting.") #Show warning if not all files were uploaded
             return
 
         #Allows user to select the file save location
@@ -326,22 +327,28 @@ class FullAuditProgram:
         )
 
         if not file_path:
-            messagebox.showinfo("Missing File Path!", "Select file path to save Wager & Game Version Audit Results and try again.") #Show cancelled message if no save file path was selected
+            messagebox.showinfo("Missing File Path!",
+                                "Select file path to save Wager & Game/Math Version Audit Results and try again.") #Show canceled message if no save file path was selected
             self.enable_submit_button() #Enables submit button
             return
 
         #Message box to confirm user selected files for submission and allows user to hit cancel if needed to re-upload files
-        if messagebox.askyesno("Confirm Submit", "Are you sure you want to submit files for comparison?"):
+        if messagebox.askyesno("Confirm Submit",
+                               "Are you sure you want to submit files for comparison?"):
             try:
                 result = self.compare_files(file_path) #Call the function to compare files and save
                 if result:
-                    messagebox.showinfo("Audit Results Saved!", f"Wager & Game Version Audit Results successfully saved at: {file_path}.") #Success message and show user save location
+                    messagebox.showinfo("Audit Results Saved!",
+                                        f"Wager & Game/Math Version Audit Results successfully saved at: {file_path}.") #Success message and show user save location
                 else:
-                    messagebox.showerror("Error!", "Failed to save file. Please check the correct file formats (.csv or .xlsx) were submitted and try again.") #Show failure message if results fail
+                    messagebox.showerror("Error!",
+                                         "Failed to save file. Check the correct file formats were submitted and try again.") #Show failure message if results fail
             except Exception as e:
-                messagebox.showerror("Error!", f"Error occurred during export: {str(e)}") #Show error if there's an exception while saving files
+                messagebox.showerror("Error!",
+                                     f"Error occurred during export: {str(e)}") #Show error if there's an exception while saving files
         else:
-            messagebox.showinfo("Canceled!", "File submission canceled. Please upload all required files to submit and try again.") #Display cancel message if user hits cancel
+            messagebox.showinfo("Canceled!",
+                                "File submission canceled. Upload all required files to submit and try again.") #Display cancel message if user hits cancel
 
         self.enable_submit_button() #Resets submit button to it's default state after handling success, cancellation, or missing file path
 
@@ -350,18 +357,18 @@ class FullAuditProgram:
         if isinstance(name, str):
             name = unicodedata.normalize('NFKD', name) #Normalize any smart quotes or accents (Ex: Jack O'Lantern Jackpots)
             name = re.sub(r'(?<!^)(?=[A-Z][a-z])', ' ', name) #Split only before capital letters followed by lowercase (to avoid splitting acronyms)
-            name = name.replace('_', ' ') #Remove underscores and adds a space (specific for postfix games)
+            name = name.replace('_', ' ') #Remove underscores and adds a space (specific for postfix games such as BlackDiamond_HighLimit)
             name = re.sub(r"[’';:]", '', name) #Remove straight and curly apostrophes using regex
             name = re.sub(r'\s+', '', name).strip() #Replace multiple spaces with no space, then strip leading/trailing
             return name.lower() #Convert to lowercase
         return name
-    
+
     def normalize_value(self, val):
         #Standardize values to handle percentages, currencies, and NaN values
         if pd.isna(val) or val == '' or val == ' ': #Return empty string for NaN, empty string, or whitespace
             return ''
         val = str(val).strip()
-        
+
         #Handles converting percentages to decimals (ex: 90% -> 0.9)
         if isinstance(val, str) and '%' in val:
             try:
@@ -373,17 +380,17 @@ class FullAuditProgram:
         #Handles multiple values separated by commas or space separated values (ex: $0.01, $0.05, $0.10, etc.)
         if any(sym in val for sym in ('$', '€', '£')): #Can add more currencies as needed
             currency_values = re.findall(r'[\$€£]?\d[\d,]*\.?\d*', val) #Regex to detect multiple values vs single values
-            
+
             if len(currency_values) > 1: #Checks for more than one currency value
                 parts = [v.strip() for v in val.split(',')] #Split by commas and strip whitespace from each individual value
                 normalized_values = [self.normalize_currency_values(p) for p in parts] #Normalize each stripped currency value using def normalize_currency_values methood
                 return ','.join(normalized_values) #Join normalized values back into a single comma-separated string
             else:
                 return self.normalize_currency_values(val) #Single value - normalize it directly
-        
+
         val = val.replace(' ', '') #Remove all spaces
         return self.clean_number_string(val) #Clean string using def clean_number_string method
-    
+
     def clean_number_string(self, val):
         #Handles values without currency symbols such as default lines & bet multipliers
         try:
@@ -405,23 +412,27 @@ class FullAuditProgram:
             else:
                 return "{:.2f}".format(num) #If not an integer, return as string formatted with two decimal places
         except ValueError:
-            return '' #if conversion fails, return empty string
-            
+            return '' #If conversion fails, return empty string
+
     def detect_header_row(self, file_path, header_indicator="Game"):
     #Handles automatically detecting header rows by scanning all rows for Wager Files
         if file_path.endswith('.xlsx'): #Read Excel file
             wager_data = pd.read_excel(file_path, header=None, engine='openpyxl') #Checks all rows for header
             wager_data = wager_data.apply(lambda col: col.map(lambda x: x.strip() if isinstance(x, str) else x)) #Cleans up unwanted spaces before further processing
 
+            #DEBUG: Print first 5 rows for inspection
+            print("\nDEBUG Excel Files: Preview of first 5 raw rows:")
+            print(wager_data.head())
+
         elif file_path.endswith('.csv'): #Handles csv files differently
             rows = [] #Empty list to store rows
-            with open(file_path, 'r', encoding='ISO-8859-1') as f: #DEBUG to print first 5 lines from CSV/Wager Audit file:
+            with open(file_path, 'r', encoding='ISO-8859-1') as f: #DEBUG to print first 5 lines from csv file:
                 reader = csv.reader(f)
-                print("\nDEBUG FOR WAGER AUDIT: Preview of raw CSV rows:")
+                print("\nDEBUG CSV Files: Preview of first 5 raw rows:")
 
                 for i, row in enumerate(reader): #Iterate over each row
                     standardized_row = [cell.strip() if isinstance(cell, str) and cell.strip() else '' for cell in row]
-                    
+
                     if i < 5: #DEBUG: print standardized row for first 5 rows
                         print(f"Line {i}: {standardized_row}")
                     rows.append(standardized_row) #Append normalized row to the list of rows
@@ -429,8 +440,8 @@ class FullAuditProgram:
             #Convert rows to DataFrame after reading rows, replace empty strings, None values with NaN for easier handling
             wager_data = pd.DataFrame(rows).replace(['', None], np.nan)
         else:
-            raise ValueError("Unsupported file format. Only CSV (.csv) and Excel (.xlsx) file types are supported.") #Raise error for incorrect file formats
-                        
+            raise ValueError("Unsupported file format. Only ('.csv') and ('.xlsx') file types are supported.") #Raise error for incorrect file formats
+
         for idx, row in wager_data.iterrows(): #Iterate through each row, convert all values to string, strip spaces
             row_values = [str(cell).strip() for cell in row.values if isinstance(cell, str)]
             print(f"Checking row {idx}: {row_values}") #DEBUG to print specific header rows it's detecting
@@ -446,14 +457,10 @@ class FullAuditProgram:
                 wager_data = wager_data.loc[:, ~wager_data.columns.duplicated()] #Remove duplicate column names
 
                 return idx
-            
+
         raise ValueError("No matching header row found. Check files to ensure proper files were uploaded and try again.") #Raise error for when headers are not found
 
-    def detect_version_row(self, file_path, header_version_indicator="Jurisdiction", unwanted_keywords=None):
-        #Default unwanted words if none are provided
-        if unwanted_keywords is None:
-            unwanted_keywords = ['Applied filters:', 'is not (Blank)']
-
+    def detect_version_row(self, file_path, header_version_indicator="Jurisdiction"):
         #Handles automatically detecting header rows by scanning all rows for Game/Math Version Files
         if file_path.endswith('.xlsx'): #Read Excel file
             version_data = pd.read_excel(file_path, header=None, engine='openpyxl') #Checks all rows for header
@@ -467,11 +474,11 @@ class FullAuditProgram:
             rows = [] #Empty list to store rows
             with open(file_path, 'r', encoding='ISO-8859-1') as f: #DEBUG to print first 5 lines from CSV/VERSION REPORT:
                 reader = csv.reader(f)
-                print("\nDEBUG FOR GAME/MATH VERSIONS: Preview of raw CSV rows:")
+                print("\nDEBUG CSV Files: Preview of first 5 raw rows:")
 
                 for i, row in enumerate(reader): #Iterate over each row
                     standardizedversion_row = [cell.strip() if isinstance(cell, str) and cell.strip() else '' for cell in row]
-                    
+
                     if i < 5: #DEBUG: print standardized row for first 5 rows
                         print(f"Line {i}: {standardizedversion_row}")
 
@@ -481,17 +488,6 @@ class FullAuditProgram:
             version_data = pd.DataFrame(rows).replace(['', None], np.nan)
         else:
             raise ValueError("Unsupported file format. Only ('.csv') and ('.xlsx') file types are supported.") #Raise error for incorrect file formats
-        
-        #Drop row containing unwanted text from Agile PLM Report
-        rows_to_drop = [] #Store indexes of rows to drop
-        for idx, row in version_data.iterrows():
-            row_text = ' '.join(str(cell).lower() for cell in row if isinstance(cell, str)) #Join cell values into a single string, lowercase it
-            if any(keyword in row_text for keyword in unwanted_keywords): #Mark row for deletion if found
-                print(f"Unwanted verbiage detected on Agile PLM Report at row {idx}, removing that row.")
-                rows_to_drop.append(idx)
-
-        #Drop row with unwanted text and reset index
-        version_data = version_data.drop(index=rows_to_drop).reset_index(drop=True)
 
         for idx, row in version_data.iterrows(): #Iterate through each row, convert all values to string, strip spaces
             versionrow_values = [str(cell).strip() for cell in row.values if isinstance(cell, str)]
@@ -501,90 +497,81 @@ class FullAuditProgram:
             if any(header_version_indicator.lower() in val for val in lowered_values):
                 print(f"Header row detected at index {idx}")
                 return idx
-            
-        raise ValueError("No matching header row found. Check files to ensure proper files were uploaded and try again.") #Raise error for when headers are not found
 
-    def partialMatching_GameNames(self, *Game, min_similarity=0.8):
-        #Handles partial Game Name matches and returns true if average similarity across all pairs >= min_similarity (EX: Off The Hook; Good Ol Fishin Hole in the Agile Report vs Good Ol Fishin Hole in Op GameList Reports)
-        n = len(Game)
-        similarities = []
+        print("No matching header row found.")
+        return None
 
-        for i in range(n):
-            for j in range(i + 1, n):
-                similarity = SequenceMatcher(None, Game[i], Game[j]).ratio()
-                similarities.append(similarity)
+    def partialMatching_GameNames(self, opGameList_Staging, opGameList_Production, min_length_ratio=0.4):
+        shorter, longer = sorted([opGameList_Staging, opGameList_Production], key=len) #Sort game names by length so 'shorter' is always the smaller one
+        return shorter in longer and len(shorter) / len(longer) >= min_length_ratio #Checks for 1.substring match / 2.at least min length ratio of 50%
 
-        average_similarity = sum(similarities) / len(similarities) if similarities else 0
-
-        lengths = [len(t) for t in Game]
-        if max(lengths) / min(lengths) >= 2:
-            return False, average_similarity
-
-        return average_similarity >= min_similarity, average_similarity
-    
-    def matching_GameNames(self, opGameList_StagingReport_gameNames, opGameList_ProductionReport_gameNames, agileReport_gameNames, threshold=85, min_similarity=0.8):
+    def matching_GameNames(self, opGameList_StagingReport_gameNames, opGameList_ProductionReport_gameNames, agileReport_gameNames=None, threshold=85):
         #Handles Game Name exact + partial matches for all three files
         gameName_matches = []
-        matched_opGameList_Staging, matched_opGameList_Production, matched_agileReport = set(), set(), set()
+        gameName_matches_opGameList_Production = set()
+        used_agileReport = set() if agileReport_gameNames else None
 
-        for t1 in opGameList_StagingReport_gameNames:
-            for t2 in opGameList_ProductionReport_gameNames:
-                for t3 in agileReport_gameNames:
-                    if t1 in matched_opGameList_Staging and t2 in matched_opGameList_Production and t3 in matched_agileReport:
-                        continue
+        for opGameList_StagingReport in opGameList_StagingReport_gameNames:
+            best_score2 = 0
+            best_match2 = None
 
-                    if t1 == t2 == t3:
-                        gameName_matches.append((t1, t2, t3, t3))
-                        matched_opGameList_Staging.add(t1)
-                        matched_opGameList_Production.add(t2)
-                        matched_agileReport.add(t3)
-                        print(f"DEBUG: Exact match triggered: '{t1}'") #DEBUG for exact match triggers
-                        continue
+            for opGameList_ProductionReport in opGameList_ProductionReport_gameNames:
+                if opGameList_ProductionReport in gameName_matches_opGameList_Production:
+                    continue
 
-                    score_t1_t2 = SequenceMatcher(None, t1, t2).ratio() * 100
-                    score_t2_t3 = SequenceMatcher(None, t2, t3).ratio() * 100
-                    score_t1_t3 = SequenceMatcher(None, t1, t3).ratio() * 100
-                    average_score = (score_t1_t2 + score_t2_t3 + score_t1_t3) / 3
+                score2 = SequenceMatcher(None, opGameList_StagingReport, opGameList_ProductionReport).ratio() * 100
+                if self.partialMatching_GameNames(opGameList_StagingReport, opGameList_ProductionReport):
+                    score2 = max(score2, threshold + 1)
 
-                    if average_score >= threshold:
-                        gameName_matches.append((t1, t2, t3, t3))
-                        matched_opGameList_Staging.add(t1)
-                        matched_opGameList_Production.add(t2)
-                        matched_agileReport.add(t3)
-                        print(f"DEBUG: EXACT match triggered: t1='{t1}', t2='{t2}', t3='{t3}' -> (avg_score={average_score:.2f})") #DEBUG for exact match triggers
-                        continue
+                if score2 > best_score2:
+                    best_score2 = score2
+                    best_match2 = opGameList_ProductionReport
 
-                    #partial matching logic only if agile plm report differs
-                    if t3 != t1:
-                        partial_results, average_similarity = self.partialMatching_GameNames(t1, t2, t3, min_similarity=min_similarity)
-                        if partial_results:
-                            gameName_matches.append((t1, t2, t3, t1))
-                            matched_opGameList_Staging.add(t1)
-                            matched_opGameList_Production.add(t2)
-                            matched_agileReport.add(t3)
-                            print(f"DEBUG: Partial match triggered File3: '{t3}' -> '{t1}' -> avg_similarities={average_similarity:.3f}") #DEBUG for partia match triggers
+            if best_score2 >= threshold and best_match2:
+                gameName_matches_opGameList_Production.add(best_match2)
 
-        return gameName_matches #Return the full list of matched game names and their scores
+                if agileReport_gameNames:
+                    best_score3 = 0
+                    best_match3 = None
+                    for agileReport in agileReport_gameNames:
+                        if agileReport in used_agileReport:
+                            continue
+
+                        score3 = SequenceMatcher(None, opGameList_StagingReport, agileReport).ratio() * 100
+                        if self.partialMatching_GameNames(opGameList_StagingReport, agileReport):
+                            score3 = max(score3, threshold + 1)
+
+                        if score3 > best_score3:
+                            best_score3 = score3
+                            best_match3 = agileReport
+
+                    if best_score3 >= threshold and best_match3:
+                        used_agileReport.add(best_match3)
+                        gameName_matches.append((opGameList_StagingReport, best_match2, best_match3, best_score2, best_score3))
+                else:
+                    gameName_matches.append((opGameList_StagingReport, best_match2, best_score2))
+
+        return gameName_matches
 
     def compare_files(self, file_path):
             #Checks if all required files are missing
             if not all([self.wagerAudit_Staging_path, self.wagerAudit_Production_path, self.operator_wagerSheet_path, self.opGameList_stagingReport_path, self.opGameList_productionReport_path, self.agileReport_path]):
-                messagebox.showerror("Error!", "Please upload all required files to proceed.") #Show error if any files are missing
+                messagebox.showerror("Error!", "Upload all required files to proceed.") #Show error if any files are missing
                 return False #Stop further execution if files are incomplete
-            
+
             all_valid = True #Set the validation flag to True if all files are present and proceed with processing
-            
+
             #Step 1: process Wager Staging/Production Audit Files and Operator Wager Config Sheet
             try:
-                #Checks required columns are present in both files
-                wageraudit_columns = ["Everi Game ID", "RTP MAX", "Denom", "Line Selection", "Bet Multiplier Selection", "Default Denom", "Default Line", 
+                #Checks required columns are present in all files
+                wagerAudit_columns = ["Everi Game ID", "RTP MAX", "Denom", "Line Selection", "Bet Multiplier Selection", "Default Denom", "Default Line", 
                                       "Default Bet Multiplier", "Default Bet", "Min Bet", "Max Bet"]
-            
-                operatorsheet_columns = ["Game", "RTP%", "Denom Selection", "Line/Ways Selection", "Bet Multiplier Selection", "Default Denom Selection", "Default Line/Ways", 
+
+                operatorSheet_columns = ["Game", "RTP%", "Denom Selection", "Line/Ways Selection", "Bet Multiplier Selection", "Default Denom Selection", "Default Line/Ways", 
                                         "Default Bet Multiplier", "Total Default Bet", "Min Bet", "Max Bet"]
 
                 #Defining column mapping for wager audit manually so that names match data
-                column_mapping_wager = {
+                column_mapping_wagerAudit = {
                     "Everi Game ID": "Game",
                     "RTP MAX": "RTP%",
                     "Denom": "Denom Selection",
@@ -599,121 +586,121 @@ class FullAuditProgram:
                 }
 
                 #Detect the header rows for files automatically finding column names
-                wagerauditStaging_header_row = self.detect_header_row(self.wagerAudit_Staging_path, header_indicator="Everi Game ID")
-                wagerauditProduction_header_row = self.detect_header_row(self.wagerAudit_Production_path, header_indicator="Everi Game ID")
-                operatorsheet_header_row = self.detect_header_row(self.operator_wagerSheet_path, header_indicator="Game")
+                wagerAudit_Staging_header_row = self.detect_header_row(self.wagerAudit_Staging_path, header_indicator="Everi Game ID")
+                wagerAudit_Production_header_row = self.detect_header_row(self.wagerAudit_Production_path, header_indicator="Everi Game ID")
+                operatorSheet_header_row = self.detect_header_row(self.operator_wagerSheet_path, header_indicator="Game")
 
                 #Throws an error if no valid header rows are found in the files
-                if wagerauditStaging_header_row is None or wagerauditProduction_header_row is None or operatorsheet_header_row is None:
+                if wagerAudit_Staging_header_row is None or wagerAudit_Production_header_row is None or operatorSheet_header_row is None:
                     messagebox.showerror("Error!", "Could not find valid header rows in the Staging Wager Audit File, Production Wager Audit File, and Operator Wager Configuration Sheet.")
                     return False
-            
+
                 #Read full files, skipping the detected header rows
                 if self.wagerAudit_Staging_path.endswith('.csv'):
-                    wagerauditStaging_file = pd.read_csv(self.wagerAudit_Staging_path, skiprows=wagerauditStaging_header_row, encoding='ISO-8859-1') #File format is downloaded as csv therefore will only support this file type
+                    wagerAudit_StagingFile = pd.read_csv(self.wagerAudit_Staging_path, skiprows=wagerAudit_Staging_header_row, encoding='ISO-8859-1') #File format is downloaded as csv therefore will only support this file type
                 else:
-                    raise ValueError("Unsupported file format for Staging Wager File. Only '.csv' file type is supported.") #Raise error if incorrect file type is selected
-                
+                    raise ValueError("Unsupported file format for Staging Wager File. Only ('.csv') file type is supported.") #Raise error if incorrect file type is selected
+
                 #Read full files, skipping the detected header rows
                 if self.wagerAudit_Production_path.endswith('.csv'):
-                    wagerauditProduction_file = pd.read_csv(self.wagerAudit_Production_path, skiprows=wagerauditProduction_header_row, encoding='ISO-8859-1') #File format is downloaded as csv therefore will only support this file type
+                    wagerAudit_ProductionFile = pd.read_csv(self.wagerAudit_Production_path, skiprows=wagerAudit_Production_header_row, encoding='ISO-8859-1') #File format is downloaded as csv therefore will only support this file type
                 else:
-                    raise ValueError("Unsupported file format for Production Wager Audit File. Only '.csv' file type is supported.") #Raise error if incorrect file type is selected
+                    raise ValueError("Unsupported file format for Production Wager Audit File. Only ('.csv') file type is supported.") #Raise error if incorrect file type is selected
 
                 if self.operator_wagerSheet_path.endswith('.xlsx'):
-                    operatorsheet_file = pd.read_excel(self.operator_wagerSheet_path, header=operatorsheet_header_row, engine='openpyxl') #File format is downloaded as xlsx therefore will only support this file type
+                    operatorSheet_file = pd.read_excel(self.operator_wagerSheet_path, header=operatorSheet_header_row, engine='openpyxl') #File format is downloaded as xlsx therefore will only support this file type
                 else:
-                    raise ValueError("Unsupported file format for Operator Wager Configuration Sheet. Only '.xlsx' file type is supported.") #Raise error if incorrect file type is selected
-                               
+                    raise ValueError("Unsupported file format for Operator Wager Configuration Sheet. Only ('.xlsx') file type is supported.") #Raise error if incorrect file type is selected
+
                 #Normalize column names, strip spaces
-                wagerauditStaging_file.columns = wagerauditStaging_file.columns.astype(str).str.strip()
-                wagerauditProduction_file.columns = wagerauditProduction_file.columns.astype(str).str.strip()
-                operatorsheet_file.columns = operatorsheet_file.columns.astype(str).str.strip()
+                wagerAudit_StagingFile.columns = wagerAudit_StagingFile.columns.astype(str).str.strip()
+                wagerAudit_ProductionFile.columns = wagerAudit_ProductionFile.columns.astype(str).str.strip()
+                operatorSheet_file.columns = operatorSheet_file.columns.astype(str).str.strip()
 
                 #Filter only relevant columns
-                wagerauditStaging_file = wagerauditStaging_file[wageraudit_columns]
-                wagerauditProduction_file = wagerauditProduction_file[wageraudit_columns]
-                operatorsheet_file = operatorsheet_file[operatorsheet_columns]
+                wagerAudit_StagingFile = wagerAudit_StagingFile[wagerAudit_columns]
+                wagerAudit_ProductionFile = wagerAudit_ProductionFile[wagerAudit_columns]
+                operatorSheet_file = operatorSheet_file[operatorSheet_columns]
 
                 #Identify if expected columns are missing
-                missing_wagerauditStaging_columns = [col for col in wageraudit_columns if col not in wagerauditStaging_file.columns]
-                missing_wagerauditProduction_columns = [col for col in wageraudit_columns if col not in wagerauditProduction_file.columns]
-                missing_operatorsheet_columns = [col for col in operatorsheet_columns if col not in operatorsheet_file.columns]
+                missing_wagerAudit_Staging_columns = [col for col in wagerAudit_columns if col not in wagerAudit_StagingFile.columns]
+                missing_wagerAudit_Production_columns = [col for col in wagerAudit_columns if col not in wagerAudit_ProductionFile.columns]
+                missing_operatorSheet_columns = [col for col in operatorSheet_columns if col not in operatorSheet_file.columns]
 
                 #Checks for missing columns
-                if missing_wagerauditStaging_columns:
-                    messagebox.showerror("Missing columns!", f"The following columns are missing from Staging Wager Audit File: {', '.join(missing_wagerauditStaging_columns)}")
+                if missing_wagerAudit_Staging_columns:
+                    messagebox.showerror("Missing columns!", f"The following columns are missing from Staging Wager Audit File: {', '.join(missing_wagerAudit_Staging_columns)}")
                     return False
-                if missing_wagerauditProduction_columns:
-                    messagebox.showerror("Missing columns!", f"The following columns are missing from Production Wager Audit File: {', '.join(missing_wagerauditProduction_columns)}")
+                if missing_wagerAudit_Production_columns:
+                    messagebox.showerror("Missing columns!", f"The following columns are missing from Production Wager Audit File: {', '.join(missing_wagerAudit_Production_columns)}")
                     return False
-                if missing_operatorsheet_columns:
-                    messagebox.showerror("Missing columns!", f"The following columns are missing from Operator Wager Configuration Sheet: {', '.join(missing_operatorsheet_columns)}")
+                if missing_operatorSheet_columns:
+                    messagebox.showerror("Missing columns!", f"The following columns are missing from Operator Wager Configuration Sheet: {', '.join(missing_operatorSheet_columns)}")
                     return False
-                              
+
                 #Renames columns to match column mapping
                 try:
-                    wagerauditStaging_file = wagerauditStaging_file.rename(columns=column_mapping_wager)
-                    wagerauditProduction_file = wagerauditProduction_file.rename(columns=column_mapping_wager)
-                    operatorsheet_file = operatorsheet_file.rename(columns=column_mapping_wager)
+                    wagerAudit_StagingFile = wagerAudit_StagingFile.rename(columns=column_mapping_wagerAudit)
+                    wagerAudit_ProductionFile = wagerAudit_ProductionFile.rename(columns=column_mapping_wagerAudit)
+                    operatorSheet_file = operatorSheet_file.rename(columns=column_mapping_wagerAudit)
                 except Exception as e:
-                    messagebox.showerror("Error in column_mapping_wager", str(e))
+                    messagebox.showerror("Error in column_mapping_wagerAudit", str(e))
                     return False
-                
+
                 #Handles all missing columns by adding them with NaN values to both DataFrames
-                for col in column_mapping_wager.values():
-                    if col not in wagerauditStaging_file.columns:
-                        wagerauditStaging_file[col] = pd.NA
-                    if col not in wagerauditProduction_file.columns:
-                        wagerauditProduction_file[col] = pd.NA
-                    if col not in operatorsheet_file.columns:
-                        operatorsheet_file[col] = pd.NA
+                for col in column_mapping_wagerAudit.values():
+                    if col not in wagerAudit_StagingFile.columns:
+                        wagerAudit_StagingFile[col] = pd.NA
+                    if col not in wagerAudit_ProductionFile.columns:
+                        wagerAudit_ProductionFile[col] = pd.NA
+                    if col not in operatorSheet_file.columns:
+                        operatorSheet_file[col] = pd.NA
 
                 #Applies normalization to columns
-                wagerauditStaging_file['Game'] = wagerauditStaging_file['Game'].apply(self.normalize_name)
-                wagerauditProduction_file['Game'] = wagerauditProduction_file['Game'].apply(self.normalize_name)
-                operatorsheet_file['Game'] = operatorsheet_file['Game'].apply(self.normalize_name)
-               
+                wagerAudit_StagingFile['Game'] = wagerAudit_StagingFile['Game'].apply(self.normalize_name)
+                wagerAudit_ProductionFile['Game'] = wagerAudit_ProductionFile['Game'].apply(self.normalize_name)
+                operatorSheet_file['Game'] = operatorSheet_file['Game'].apply(self.normalize_name)
+
                 #Fill NaN values with 'N/A' for consistency during comparison/export
-                wagerauditStaging_file = wagerauditStaging_file.fillna('N/A')
-                wagerauditProduction_file = wagerauditProduction_file.fillna('N/A')
-                operatorsheet_file = operatorsheet_file.fillna('N/A')
+                wagerAudit_StagingFile = wagerAudit_StagingFile.fillna('N/A')
+                wagerAudit_ProductionFile = wagerAudit_ProductionFile.fillna('N/A')
+                operatorSheet_file = operatorSheet_file.fillna('N/A')
 
                 #Sorts Game columns alphabetically in all DataFrames
-                wagerauditStaging_file = wagerauditStaging_file.sort_values(by='Game', ascending=True)
-                wagerauditProduction_file = wagerauditProduction_file.sort_values(by='Game', ascending=True)
-                operatorsheet_file = operatorsheet_file.sort_values(by='Game', ascending=True)
+                wagerAudit_StagingFile = wagerAudit_StagingFile.sort_values(by='Game', ascending=True)
+                wagerAudit_ProductionFile = wagerAudit_ProductionFile.sort_values(by='Game', ascending=True)
+                operatorSheet_file = operatorSheet_file.sort_values(by='Game', ascending=True)
 
                 #Removes duplicates in DataFrames to ensure it only appears once
-                wagerauditStaging_file = wagerauditStaging_file.drop_duplicates(subset='Game')
-                wagerauditProduction_file = wagerauditProduction_file.drop_duplicates(subset='Game')
-                operatorsheet_file = operatorsheet_file.drop_duplicates(subset='Game')
-               
+                wagerAudit_StagingFile = wagerAudit_StagingFile.drop_duplicates(subset='Game')
+                wagerAudit_ProductionFile = wagerAudit_ProductionFile.drop_duplicates(subset='Game')
+                operatorSheet_file = operatorSheet_file.drop_duplicates(subset='Game')
+
                 #Ensures DataFrames have only matching Game values
                 common_games_wager = (
-                    set(wagerauditStaging_file['Game']) &
-                    set(wagerauditProduction_file['Game']) &
-                    set(operatorsheet_file['Game'])
+                    set(wagerAudit_StagingFile['Game']) &
+                    set(wagerAudit_ProductionFile['Game']) &
+                    set(operatorSheet_file['Game'])
                 )
 
                 #Get sets of Game Names from each file
-                games_wagerauditStaging_file = set(wagerauditStaging_file['Game'])
-                games_wagerauditProduction_file = set(wagerauditProduction_file['Game'])
-                games_operatorsheet_file = set(operatorsheet_file['Game'])
+                games_wagerAudit_StagingFile = set(wagerAudit_StagingFile['Game'])
+                games_wagerAudit_ProductionFile = set(wagerAudit_ProductionFile['Game'])
+                games_operatorSheet_file = set(operatorSheet_file['Game'])
 
                 #Union of all Game Names across all three files
-                all_games = games_wagerauditStaging_file | games_wagerauditProduction_file | games_operatorsheet_file
+                all_games = games_wagerAudit_StagingFile | games_wagerAudit_ProductionFile | games_operatorSheet_file
 
                 allmissing_games = [] #Empty list to collect missing Game Names
 
                 #Loop through all Game Names to see which are missing
                 for game in all_games:
                     missing_in = []
-                    if game not in games_wagerauditStaging_file:
+                    if game not in games_wagerAudit_StagingFile:
                         missing_in.append('Missing in Staging Wager Audit File')
-                    if game not in games_wagerauditProduction_file:
+                    if game not in games_wagerAudit_ProductionFile:
                         missing_in.append('Missing in Production Wager Audit File')
-                    if game not in games_operatorsheet_file:
+                    if game not in games_operatorSheet_file:
                         missing_in.append('Missing in Operator Wager Configuration Sheet')
 
                     #Append one row per Game Name with combined missing info
@@ -728,77 +715,78 @@ class FullAuditProgram:
                 missing_games_wager = pd.DataFrame(allmissing_games).sort_values(by='Game').reset_index(drop=True)
 
                 #Filer rows based on common Game Names in all three files
-                wagerauditStaging_file = wagerauditStaging_file[wagerauditStaging_file['Game'].isin(common_games_wager)]
-                wagerauditProduction_file = wagerauditProduction_file[wagerauditProduction_file['Game'].isin(common_games_wager)]
-                operatorsheet_file = operatorsheet_file[operatorsheet_file['Game'].isin(common_games_wager)]
+                wagerAudit_StagingFile = wagerAudit_StagingFile[wagerAudit_StagingFile['Game'].isin(common_games_wager)]
+                wagerAudit_ProductionFile = wagerAudit_ProductionFile[wagerAudit_ProductionFile['Game'].isin(common_games_wager)]
+                operatorSheet_file = operatorSheet_file[operatorSheet_file['Game'].isin(common_games_wager)]
 
                 #Sort both DataFrames by 'Game' column and reset index to maintain alignment
-                wagerauditStaging_file = wagerauditStaging_file.sort_values(by='Game', ascending=True).reset_index(drop=True)
-                wagerauditProduction_file = wagerauditProduction_file.sort_values(by='Game', ascending=True).reset_index(drop=True)
-                operatorsheet_file = operatorsheet_file.sort_values(by='Game', ascending=True).reset_index(drop=True)
+                wagerAudit_StagingFile = wagerAudit_StagingFile.sort_values(by='Game', ascending=True).reset_index(drop=True)
+                wagerAudit_ProductionFile = wagerAudit_ProductionFile.sort_values(by='Game', ascending=True).reset_index(drop=True)
+                operatorSheet_file = operatorSheet_file.sort_values(by='Game', ascending=True).reset_index(drop=True)
 
                 #DataFrame for Wager Audit Results to hold side-by-side columns for comparison
-                audit_results_wagers = pd.DataFrame()
+                audit_results_wagerAudit = pd.DataFrame()
 
                 #Single loop to handle renamed columns to normalize values and add columns side by side
-                for wager_column in wagerauditStaging_file.columns:
-                    wagerauditStaging_file[wager_column] = wagerauditStaging_file[wager_column].apply(self.normalize_value) #Normalize Staging Wager Audit File columns
+                for wager_column in wagerAudit_StagingFile.columns:
+                    wagerAudit_StagingFile[wager_column] = wagerAudit_StagingFile[wager_column].apply(self.normalize_value) #Normalize Staging Wager Audit File columns
 
                     #Checks if column exists in Wager Production Audit file
-                    if wager_column in wagerauditProduction_file.columns:
-                        wagerauditProduction_file[wager_column] = wagerauditProduction_file[wager_column].apply(self.normalize_value) #Normalize Production Wager Audit File
+                    if wager_column in wagerAudit_ProductionFile.columns:
+                        wagerAudit_ProductionFile[wager_column] = wagerAudit_ProductionFile[wager_column].apply(self.normalize_value) #Normalize Production Wager Audit File
 
-                    #Checks if column exists in operatorsheet_file
-                    if wager_column in operatorsheet_file.columns:
-                        operatorsheet_file[wager_column] = operatorsheet_file[wager_column].apply(self.normalize_value) #Normalize Operator Wager Config Sheet columns
+                    #Checks if column exists in Operator Wager Config Sheet
+                    if wager_column in operatorSheet_file.columns:
+                        operatorSheet_file[wager_column] = operatorSheet_file[wager_column].apply(self.normalize_value) #Normalize Operator Wager Config Sheet columns
 
-                    if wager_column == 'Game':
+                    if wager_column == 'Game': #Skips 'Game' column as it will be combined into one column
                         continue
 
                     if (
-                        wager_column in wagerauditStaging_file.columns and
-                        wager_column in wagerauditProduction_file.columns and
-                        wager_column in operatorsheet_file.columns
+                        wager_column in wagerAudit_StagingFile.columns and
+                        wager_column in wagerAudit_ProductionFile.columns and
+                        wager_column in operatorSheet_file.columns
                     ):
                         #Side by side columns from all sheets to the DataFrame
-                        audit_results_wagers[f"{wager_column}\n(Staging Wager Audit File): "] = wagerauditStaging_file[wager_column]
-                        audit_results_wagers[f"{wager_column}\n(Production Wager Audit File): "] = wagerauditProduction_file[wager_column]
-                        audit_results_wagers[f"{wager_column}\n({Path(self.operator_wagerSheet_path).stem[:31]}): "] = operatorsheet_file[wager_column]
+                        audit_results_wagerAudit[f"{wager_column}\n(Staging Wager Audit File): "] = wagerAudit_StagingFile[wager_column]
+                        audit_results_wagerAudit[f"{wager_column}\n(Production Wager Audit File): "] = wagerAudit_ProductionFile[wager_column]
+                        audit_results_wagerAudit[f"{wager_column}\n({Path(self.operator_wagerSheet_path).stem[:31]}): "] = operatorSheet_file[wager_column]
                     else:
-                        if wager_column not in wagerauditStaging_file.columns:
+                        if wager_column not in wagerAudit_StagingFile.columns:
                             print(f"'{wager_column}' not found in Staging Wager Audit File.")
-                        if wager_column not in wagerauditProduction_file.columns:
+                        if wager_column not in wagerAudit_ProductionFile.columns:
                             print(f"'{wager_column}' not found in Production Wager Audit File.")
-                        if wager_column not in operatorsheet_file.columns:
+                        if wager_column not in operatorSheet_file.columns:
                             print(f"'{wager_column}' not found in Operator Wager Configuration Sheet.")
 
                         #Collect missing games from all files for Missing Games sheet
                         missing_games_wager = pd.concat(
                             [missing_games_wager, pd.DataFrame({'Missing Games': [wager_column]})], ignore_index=True
                             )
-                        
-                audit_results_wagers['Game'] = wagerauditStaging_file['Game'].values
-                cols = list(audit_results_wagers.columns)
+
+                #Combine 'Game' columns for final audit_results_wagerAudit
+                audit_results_wagerAudit['Game'] = wagerAudit_StagingFile['Game'].values
+                cols = list(audit_results_wagerAudit.columns)
                 cols.remove('Game')
                 cols.insert(0, 'Game')
-                audit_results_wagers = audit_results_wagers[cols]
+                audit_results_wagerAudit = audit_results_wagerAudit[cols]
 
-                audit_results_wagers = audit_results_wagers.sort_values(by='Game', ascending=True).reset_index(drop=True)
+                audit_results_wagerAudit = audit_results_wagerAudit.sort_values(by='Game', ascending=True).reset_index(drop=True) #Final sorting for audit_results_wagerAudit
 
             except Exception as e:
                 all_valid = False
                 print(f"Error caught in except block: {e}")
                 messagebox.showerror("Error", f"An error has occured for the Staging Wager Audit File, Production Wager Audit File, and Operator Wager Configuration Sheet: {str(e)}")
                 return False
-            
-            #Step 2: Process Staging Operator GameList/Production Operator GameList Reports and Agile PLM Report
+
+            #Step 2: Process Staging Operator GameList Report/Production Operator GameList Report, and Agile PLM Report
             try:
                 #Checks required columns are present in all files
-                opgamelist_columns = ["jurisdictionId", "gameId", "mathVersion", "Version"]
-                agilereport_columns = ["Jurisdiction", "GameName", "Math Version", "Latest Software Version"]
+                opGameList_columns = ["jurisdictionId", "gameId", "mathVersion", "Version"]
+                agileReport_columns = ["Jurisdiction", "GameName", "Math Version", "Latest Software Version"]
 
-                #Defining column mapping for version audit manually so that names match data
-                column_mapping_versions = {
+                #Defining column mapping for game/math version audit manually so that names match data
+                column_mapping_gameVersionAudit = {
                     "jurisdictionId": "Jurisdiction",
                     "gameId": "GameName",
                     "mathVersion": "Math Version",
@@ -806,95 +794,105 @@ class FullAuditProgram:
                 }
 
                 #Detect the header rows for files automatically finding column names
-                opgamelistStaging_header_row = self.detect_version_row(self.opGameList_stagingReport_path, header_version_indicator="jurisdictionId")
-                opgamelistProduction_header_row = self.detect_version_row(self.opGameList_productionReport_path, header_version_indicator="jurisdictionId")
-                agilereport_header_row = self.detect_version_row(self.agileReport_path, header_version_indicator="Jurisdiction")
+                opGameList_Staging_header_row = self.detect_version_row(self.opGameList_stagingReport_path, header_version_indicator="jurisdictionId")
+                opGameList_Production_header_row = self.detect_version_row(self.opGameList_productionReport_path, header_version_indicator="jurisdictionId")
+                agileReport_header_row = self.detect_version_row(self.agileReport_path, header_version_indicator="Jurisdiction")
 
                 #Throws an error if no valid header rows are found in files
-                if opgamelistStaging_header_row is None or opgamelistProduction_header_row is None or agilereport_header_row is None:
+                if opGameList_Staging_header_row is None or opGameList_Production_header_row is None or agileReport_header_row is None:
                     messagebox.showerror("Error!", "Could not find valid header rows for the Staging Operator GameList Report, Production Operator GameList Report, and Agile PLM Report.")
                     return False
 
                 #Read full files, skipping the detected header rows
                 if self.opGameList_stagingReport_path.endswith('.csv'):
-                    opgamelistStaging_file = pd.read_csv(self.opGameList_stagingReport_path, skiprows=opgamelistStaging_header_row, encoding='ISO-8859-1', dtype=str) #File format is downloaded as csv therefore will only support this file type
+                    opGameList_StagingFile = pd.read_csv(self.opGameList_stagingReport_path, skiprows=opGameList_Staging_header_row, encoding='ISO-8859-1', dtype=str) #File format is downloaded as csv therefore will only support this file type
                 else:
-                    raise ValueError("Unsupported file format for Staging Operator GameList Report. Only '.csv' file type is supported.") #Raise error if incorrect file type is selected
-                
+                    raise ValueError("Unsupported file format for Staging Operator GameList Report. Only ('.csv') file type is supported.") #Raise error if incorrect file type is selected
+
                 if self.opGameList_productionReport_path.endswith('.csv'):
-                    opgamelistProduction_file = pd.read_csv(self.opGameList_productionReport_path, skiprows=opgamelistProduction_header_row, encoding='ISO-8859-1', dtype=str) #File format is downloaded as csv therefore will only support this file type
+                    opGameList_ProductionFile = pd.read_csv(self.opGameList_productionReport_path, skiprows=opGameList_Production_header_row, encoding='ISO-8859-1', dtype=str) #File format is downloaded as csv therefore will only support this file type
                 else:
-                    raise ValueError("Unsupported file format for Production Operator GameList Report. Only '.csv' file type is supported.") #Raise error if incorrect file type is selected
+                    raise ValueError("Unsupported file format for Production Operator GameList Report. Only ('.csv') file type is supported.") #Raise error if incorrect file type is selected
 
                 if self.agileReport_path.endswith('.xlsx'):
-                    agilereport_file = pd.read_excel(self.agileReport_path, header=agilereport_header_row, engine='openpyxl', dtype=str) #File format is downloaded as xlsx therefore will only support this file type
+                    agileReport_file = pd.read_excel(self.agileReport_path, header=agileReport_header_row, engine='openpyxl', dtype=str) #File format is downloaded as xlsx therefore will only support this file type
                 else:
-                    raise ValueError("Unsupported file format for Agile PLM Report. Only '.xlsx' file type is supported.") #Raise error if incorrect file type is selected
+                    raise ValueError("Unsupported file format for Agile PLM Report. Only ('.xlsx') file type is supported.") #Raise error if incorrect file type is selected
+                
+                #Drop rows containing unwanted text from Agile PLM report specifically OR Blank rows completely
+                unwanted_keywords_agilePLMReport = ['applied filters:']
+                agileReport_file = agileReport_file[~agileReport_file.apply(
+                    lambda row: (
+                        any(isinstance(cell, str) and any(kw in cell.lower() for kw in unwanted_keywords_agilePLMReport) for cell in row)
+                        or all(cell == "" or pd.isna(cell) for cell in row)
+                    ),
+                    axis=1
+                )].reset_index(drop=True)
 
                 #Normalize column names, strip spaces
-                opgamelistStaging_file.columns = opgamelistStaging_file.columns.astype(str).str.strip()
-                opgamelistProduction_file.columns = opgamelistProduction_file.columns.astype(str).str.strip()
-                agilereport_file.columns = agilereport_file.columns.astype(str).str.strip()
+                opGameList_StagingFile.columns = opGameList_StagingFile.columns.astype(str).str.strip()
+                opGameList_ProductionFile.columns = opGameList_ProductionFile.columns.astype(str).str.strip()
+                agileReport_file.columns = agileReport_file.columns.astype(str).str.strip()
 
                 #Filter only relevant columns
-                opgamelistStaging_file = opgamelistStaging_file[opgamelist_columns]
-                opgamelistProduction_file = opgamelistProduction_file[opgamelist_columns]
-                agilereport_file = agilereport_file[agilereport_columns]
+                opGameList_StagingFile = opGameList_StagingFile[opGameList_columns]
+                opGameList_ProductionFile = opGameList_ProductionFile[opGameList_columns]
+                agileReport_file = agileReport_file[agileReport_columns]
 
                 #Identify if expected columns are missing
-                missing_opgamelistStaging_columns = [col for col in opgamelist_columns if col not in opgamelistStaging_file.columns]
-                missing_opgamelistProduction_columns = [col for col in opgamelist_columns if col not in opgamelistProduction_file.columns]
-                missing_agilereport_columns = [col for col in agilereport_columns if col not in agilereport_file.columns]
+                missing_opGameList_Staging_columns = [col for col in opGameList_columns if col not in opGameList_StagingFile.columns]
+                missing_opGameList_Production_columns = [col for col in opGameList_columns if col not in opGameList_ProductionFile.columns]
+                missing_agileReport_columns = [col for col in agileReport_columns if col not in agileReport_file.columns]
 
                 #Checks for missing columns and if missing, program will not continue
-                if missing_opgamelistStaging_columns:
-                    messagebox.showerror("Missing columns!", f"The following columns are missing from Staging Operator GameList Report: {', '.join(missing_opgamelistStaging_columns)}")
+                if missing_opGameList_Staging_columns:
+                    messagebox.showerror("Missing columns!", f"The following columns are missing from Staging Operator GameList Report: {', '.join(missing_opGameList_Staging_columns)}")
                     return False
-                
-                if missing_opgamelistProduction_columns:
-                    messagebox.showerror("Missing columns!", f"The following columns are missing from Production Operator GameList Report: {', '.join(missing_opgamelistProduction_columns)}")
+
+                if missing_opGameList_Production_columns:
+                    messagebox.showerror("Missing columns!", f"The following columns are missing from Production Operator GameList Report: {', '.join(missing_opGameList_Production_columns)}")
                     return False
-                
-                if missing_agilereport_columns:
-                    messagebox.showerror("Missing columns!", f"The following columns are missing from Agile PLM Report: {', '.join(missing_agilereport_columns)}")
+
+                if missing_agileReport_columns:
+                    messagebox.showerror("Missing columns!", f"The following columns are missing from Agile PLM Report: {', '.join(missing_agileReport_columns)}")
                     return False
 
                 #Renames columns to match column mapping; renames 'GameName' column to 'Game' for consistency
                 try:
-                    opgamelistStaging_file = opgamelistStaging_file.rename(columns=column_mapping_versions)
-                    opgamelistProduction_file = opgamelistProduction_file.rename(columns=column_mapping_versions)
-                    agilereport_file = agilereport_file.rename(columns=column_mapping_versions)
+                    opGameList_StagingFile = opGameList_StagingFile.rename(columns=column_mapping_gameVersionAudit)
+                    opGameList_ProductionFile = opGameList_ProductionFile.rename(columns=column_mapping_gameVersionAudit)
+                    agileReport_file = agileReport_file.rename(columns=column_mapping_gameVersionAudit)
 
-                    if 'GameName' in opgamelistStaging_file.columns:
-                        opgamelistStaging_file = opgamelistStaging_file.rename(columns={'GameName': 'Game'})
-                    if 'GameName' in opgamelistProduction_file.columns:
-                        opgamelistProduction_file = opgamelistProduction_file.rename(columns={'GameName': 'Game'})
-                    if 'GameName' in agilereport_file.columns:
-                        agilereport_file = agilereport_file.rename(columns={'GameName': 'Game'})
+                    if 'GameName' in opGameList_StagingFile.columns:
+                        opGameList_StagingFile = opGameList_StagingFile.rename(columns={'GameName': 'Game'})
+                    if 'GameName' in opGameList_ProductionFile.columns:
+                        opGameList_ProductionFile = opGameList_ProductionFile.rename(columns={'GameName': 'Game'})
+                    if 'GameName' in agileReport_file.columns:
+                        agileReport_file = agileReport_file.rename(columns={'GameName': 'Game'})
 
                 except Exception as e:
-                    messagebox.showerror("Error in column_mapping_versions", str(e))
+                    messagebox.showerror("Error in column_mapping_gameVersionAudit", str(e)) #Throws error if column mapping fails
                     return False
-                
+
                 #Applies normalization to columns
-                opgamelistStaging_file['Game'] = opgamelistStaging_file['Game'].apply(self.normalize_name)
-                opgamelistProduction_file['Game'] = opgamelistProduction_file['Game'].apply(self.normalize_name)
-                agilereport_file['Game'] = agilereport_file['Game'].apply(self.normalize_name)
+                opGameList_StagingFile['Game'] = opGameList_StagingFile['Game'].apply(self.normalize_name)
+                opGameList_ProductionFile['Game'] = opGameList_ProductionFile['Game'].apply(self.normalize_name)
+                agileReport_file['Game'] = agileReport_file['Game'].apply(self.normalize_name)
 
                 #Fill NaN values with 'N/A' for consistency during comparison/export
-                opgamelistStaging_file = opgamelistStaging_file.fillna('N/A')
-                opgamelistProduction_file = opgamelistProduction_file.fillna('N/A')
-                agilereport_file = agilereport_file.fillna('N/A')
+                opGameList_StagingFile = opGameList_StagingFile.fillna('N/A')
+                opGameList_ProductionFile = opGameList_ProductionFile.fillna('N/A')
+                agileReport_file = agileReport_file.fillna('N/A')
 
                 #Removes duplicates in DataFrames to ensure it only appears once
-                opgamelistStaging_file = opgamelistStaging_file.drop_duplicates(subset='Game')
-                opgamelistProduction_file = opgamelistProduction_file.drop_duplicates(subset='Game')
-                agilereport_file = agilereport_file.drop_duplicates(subset='Game', keep='last') #keeps last listed version as it is the latest approved per the Agile PLM Report specifically
+                opGameList_StagingFile = opGameList_StagingFile.drop_duplicates(subset='Game')
+                opGameList_ProductionFile = opGameList_ProductionFile.drop_duplicates(subset='Game')
+                agileReport_file = agileReport_file.drop_duplicates(subset='Game', keep='last') #keeps last listed version as it is the latest approved per the Agile PLM Report specifically
 
                 #Sorts 'Game' column alphabetically in DataFrames
-                opgamelistStaging_file = opgamelistStaging_file.sort_values(by='Game', ascending=True)
-                opgamelistProduction_file = opgamelistProduction_file.sort_values(by='Game', ascending=True)
-                agilereport_file = agilereport_file.sort_values(by='Game', ascending=True)
+                opGameList_StagingFile = opGameList_StagingFile.sort_values(by='Game', ascending=True)
+                opGameList_ProductionFile = opGameList_ProductionFile.sort_values(by='Game', ascending=True)
+                agileReport_file = agileReport_file.sort_values(by='Game', ascending=True)
 
                 #File labels for labeling on Missing Games sheet
                 file_labels = ['Staging Operator GameList Report',
@@ -902,26 +900,25 @@ class FullAuditProgram:
                                'Agile PLM Report']
 
                 #Get Game Name matches from all files
-                gameName_matches_versionAudit = self.matching_GameNames(
-                    list(opgamelistStaging_file['Game']),
-                    list(opgamelistProduction_file['Game']),
-                    list(agilereport_file['Game']),
+                gameName_matches_gameVersionAudit = self.matching_GameNames(
+                    list(opGameList_StagingFile['Game']),
+                    list(opGameList_ProductionFile['Game']),
+                    list(agileReport_file['Game']),
                     threshold=85,
-                    min_similarity=0.8
                 )
 
-                #Build map for agile plm report game name to op gamelist staging (partial matches)
-                agileReport_file_to_opGameList_stagingFile_map = {m[2]: m[0] for m in gameName_matches_versionAudit if m[2] != m[0]}
+                #Build map for agile plm report game name to op gamelist staging to handle game name partial matches
+                agileReportFile_to_opGameListStagingFile_map = {m[2]: m[0] for m in gameName_matches_gameVersionAudit if m[2] != m[0]}
 
                 #Pre-align agile plm report game names using the mapping above
-                agileReport_file_aligned = agilereport_file.copy()
+                agileReport_file_aligned = agileReport_file.copy()
                 agileReport_file_aligned['Game'] = agileReport_file_aligned['Game'].apply(
-                    lambda t: agileReport_file_to_opGameList_stagingFile_map.get(t, t)
+                    lambda t: agileReportFile_to_opGameListStagingFile_map.get(t, t)
                 )
 
                 #Build missing game name sets for detection
-                opGameList_stagingFile_set = set(opgamelistStaging_file['Game'])
-                opGameList_productionFile_set = set(opgamelistProduction_file['Game'])
+                opGameList_stagingFile_set = set(opGameList_StagingFile['Game'])
+                opGameList_productionFile_set = set(opGameList_ProductionFile['Game'])
                 agileReportFile_set = set(agileReport_file_aligned['Game'])
 
                 all_gameNames_union = opGameList_stagingFile_set.union(opGameList_productionFile_set).union(agileReportFile_set)
@@ -954,25 +951,25 @@ class FullAuditProgram:
                 #Collect matched rows for final audit results only if all three files have the same Game Name
                 opGameList_stagingFile_matchedGameNames, opGameList_productionFile_matchedGameNames, agileReport_matchedGameNames, gameName_rows = [], [], [], []
 
-                for t1, t2, t3_original, t3_aligned in gameName_matches_versionAudit:
-                    row1_staging_df = opgamelistStaging_file.loc[opgamelistStaging_file['Game'] == t1]
-                    row2_production_df = opgamelistProduction_file.loc[opgamelistProduction_file['Game'] == t2]
-                    row3_agileReport_df = agileReport_file_aligned.loc[agileReport_file_aligned['Game'] == t3_aligned]
+                for t1, t2, t3, *_ in gameName_matches_gameVersionAudit:
+                    row1_staging_df = opGameList_StagingFile.loc[opGameList_StagingFile['Game'] == t1]
+                    row2_production_df = opGameList_ProductionFile.loc[opGameList_ProductionFile['Game'] == t2]
+                    row3_agileReport_df = agileReport_file.loc[agileReport_file['Game'] == t3]
 
                     #Skip if any row is missing
                     if row1_staging_df.empty or row2_production_df.empty or row3_agileReport_df.empty:
                         continue
 
-                    row1_idx_staging = row1_staging_df.iloc[0]
-                    row2_idx_production = row2_production_df.iloc[0]
-                    row3_idx_agileReport = row3_agileReport_df.iloc[0].copy()
+                    row1_idx_staging = row1_staging_df.iloc[0].to_dict()
+                    row2_idx_production = row2_production_df.iloc[0].to_dict()
+                    row3_idx_agileReport = row3_agileReport_df.iloc[0].copy().to_dict()
 
-                    if t3_aligned != t3_original:
+                    if t3 != t1:
                         row3_idx_agileReport['Game'] = t1
 
-                    opGameList_stagingFile_matchedGameNames.append(row1_idx_staging.to_dict())
-                    opGameList_productionFile_matchedGameNames.append(row2_idx_production.to_dict())
-                    agileReport_matchedGameNames.append(row3_idx_agileReport.to_dict())
+                    opGameList_stagingFile_matchedGameNames.append(row1_idx_staging)
+                    opGameList_productionFile_matchedGameNames.append(row2_idx_production)
+                    agileReport_matchedGameNames.append(row3_idx_agileReport)
                     gameName_rows.append({'Game': t1})
 
                 #Build results table
@@ -980,7 +977,7 @@ class FullAuditProgram:
                 row2_production_df = pd.DataFrame(opGameList_productionFile_matchedGameNames).reset_index(drop=True)
                 row3_agileReport_df = pd.DataFrame(agileReport_matchedGameNames).reset_index(drop=True)
                 gameName_rows_df = pd.DataFrame(gameName_rows).drop_duplicates().reset_index(drop=True)
-                audit_results_versions = gameName_rows_df.copy()
+                audit_results_gameVersions = gameName_rows_df.copy()
 
                 all_combined_columns = (
                     set(row1_staging_df.columns)
@@ -994,51 +991,50 @@ class FullAuditProgram:
                     if col == 'Jurisdiction':
                         continue #Skip adding Jurisdiction to handle separately below
                     if col not in row1_staging_df:
-                        raise KeyError(f"{col} not found in 'opgamelistStaging_file' matched rows datasets")
+                        raise KeyError(f"{col} not found in 'opGameList_StagingFile' matched rows datasets")
                     if col not in row2_production_df:
-                        raise KeyError(f"{col} not found in 'opgamelistProduction_file' matched rows datasets")
+                        raise KeyError(f"{col} not found in 'opGameList_ProductionFile' matched rows datasets")
                     if col not in row3_agileReport_df:
-                        raise KeyError(f"{col} not found in 'agileReport_file_aligned' matched rows datasets")
-                    
-                    audit_results_versions[f"{col} (Staging Operator GameList Report):"] = row1_staging_df[col].reset_index(drop=True)
-                    audit_results_versions[f"{col} (Production Operator GameList Report):"] = row2_production_df[col].reset_index(drop=True)
-                    audit_results_versions[f"{col} (Agile PLM Report):"] = row3_agileReport_df[col].reset_index(drop=True)
+                        raise KeyError(f"{col} not found in 'agileReport_file' matched rows datasets")
 
-                #Jurisdiction to only appear once pulled from agile plm report column
+                    audit_results_gameVersions[f"{col} (Staging Operator GameList Report): "] = row1_staging_df[col].reset_index(drop=True)
+                    audit_results_gameVersions[f"{col} (Production Operator GameList Report): "] = row2_production_df[col].reset_index(drop=True)
+                    audit_results_gameVersions[f"{col} (Agile PLM Report): "] = row3_agileReport_df[col].reset_index(drop=True)
+
+                #Combine Jurisdiction column to only appear once (pulled from agile plm report column)
                 if 'Jurisdiction' in row3_agileReport_df.columns:
-                    audit_results_versions['Jurisdiction'] = row3_agileReport_df['Jurisdiction'].reset_index(drop=True)
-                    audit_results_versions = audit_results_versions.sort_values(by='Game', ascending=True).reset_index(drop=True)
-                    #Rearrange columns putting Jurisdiction before Game
-                    cols = list(audit_results_versions.columns)
+                    audit_results_gameVersions['Jurisdiction'] = row3_agileReport_df['Jurisdiction'].reset_index(drop=True)
+                    audit_results_gameVersions = audit_results_gameVersions.sort_values(by='Game', ascending=True).reset_index(drop=True)
+                    cols = list(audit_results_gameVersions.columns) #Rearrange columns putting Jurisdiction before Game
                     cols.remove('Jurisdiction')
                     gameName_index = cols.index('Game')
                     cols.insert(gameName_index, 'Jurisdiction')
-                    audit_results_versions = audit_results_versions[cols]
+                    audit_results_gameVersions = audit_results_gameVersions[cols]
                 else:
-                    audit_results_versions = audit_results_versions.sort_values(by='Game', ascending=True).reset_index(drop=True)
-                
+                    audit_results_gameVersions = audit_results_gameVersions.sort_values(by='Game', ascending=True).reset_index(drop=True)
+
             except Exception as e:
                 all_valid = False
                 messagebox.showerror("Error!", f"An error has occured for the Staging Operator GameList Report, Production Operator GameList Report, and Agile PLM Report: {str(e)}")
                 return False
-            
-            #Combine missing games from wager audit and versions audit combined for Missing Games sheet
+
+            #Combine missing games from wager audit and game/math version audit combined for Missing Games sheet
             combined_missing_games = pd.concat([missing_games_wager, missing_gameNames_versionAudit], ignore_index=True)
-            
+
             #If all files are processed successfully and True, proceed with Excel writing
             if all_valid:
                 try:
                     #Write to excel with formatting
                     with pd.ExcelWriter(file_path, engine='xlsxwriter') as writer:
                         #Write to Excel with sheet names (based on selected file paths) truncated to 31 characters
-                        wagerauditStaging_file.to_excel(writer, sheet_name=Path(self.wagerAudit_Staging_path).stem[:31], index=False) #Staging Wager Audit File raw data on sheet 1
-                        wagerauditProduction_file.to_excel(writer, sheet_name=Path(self.wagerAudit_Production_path).stem[:31], index=False) #Production Wager Audit File raw data on sheet 2
-                        operatorsheet_file.to_excel(writer, sheet_name=Path(self.operator_wagerSheet_path).stem[:31], index=False) #Op Wager Config Sheet raw data on sheet 3
-                        audit_results_wagers.to_excel(writer, sheet_name='Wager Audit Results', index=False) #Wager Audit Results with side by side comparison on sheet 4
-                        opgamelistStaging_file.to_excel(writer, sheet_name=Path(self.opGameList_stagingReport_path).stem[:31], index=False) #Staging Op GameList Report raw data on sheet 5
-                        opgamelistProduction_file.to_excel(writer, sheet_name=Path(self.opGameList_productionReport_path).stem[:31], index=False) #Production Op GameList Report raw data on sheet 6
-                        agilereport_file.to_excel(writer, sheet_name=Path(self.agileReport_path).stem[:31], index=False) #Agile PLM Report raw data on sheet 7
-                        audit_results_versions.to_excel(writer, sheet_name='GameVersion Audit Results', index=False) #GameVersion Audit Results with side by side comparison on sheet 8
+                        wagerAudit_StagingFile.to_excel(writer, sheet_name=Path(self.wagerAudit_Staging_path).stem[:31], index=False) #Staging Wager Audit File raw data on sheet 1
+                        wagerAudit_ProductionFile.to_excel(writer, sheet_name=Path(self.wagerAudit_Production_path).stem[:31], index=False) #Production Wager Audit File raw data on sheet 2
+                        operatorSheet_file.to_excel(writer, sheet_name=Path(self.operator_wagerSheet_path).stem[:31], index=False) #Op Wager Config Sheet raw data on sheet 3
+                        audit_results_wagerAudit.to_excel(writer, sheet_name='Wager Audit Results', index=False) #Wager Audit Results with side by side comparison on sheet 4
+                        opGameList_StagingFile.to_excel(writer, sheet_name=Path(self.opGameList_stagingReport_path).stem[:31], index=False) #Staging Op GameList Report raw data on sheet 5
+                        opGameList_ProductionFile.to_excel(writer, sheet_name=Path(self.opGameList_productionReport_path).stem[:31], index=False) #Production Op GameList Report raw data on sheet 6
+                        agileReport_file.to_excel(writer, sheet_name=Path(self.agileReport_path).stem[:31], index=False) #Agile PLM Report raw data on sheet 7
+                        audit_results_gameVersions.to_excel(writer, sheet_name='Game&Math Version Audit Results', index=False) #GameVersion Audit Results with side by side comparison on sheet 8
                         combined_missing_games.to_excel(writer, sheet_name='Missing Games', index=False) #Missing games from all files on sheet 9
 
                         #Access the workbook and worksheet to apply formatting
@@ -1047,18 +1043,18 @@ class FullAuditProgram:
                         #Define formats
                         header_format = workbook.add_format({'bg_color': '#D9D9D9', 'bold': True, 'border': 2, 'text_wrap': True}) #Grey header format (bold, thick borders)
                         cell_format = workbook.add_format({'border': 1, 'border_color': '#BFBFBF'}) #Borders for data cells
-                        red_format = workbook.add_format({'bg_color': '#FF6F6F'}) #Red format highlights cells red when there's a mismatch on the Wager Audit Comparison Results
+                        red_format = workbook.add_format({'bg_color': '#FF6F6F'}) #Red format highlights cells red when there's a mismatch on final audit results sheets
 
                         #Loop & apply formats to all sheets
                         for df, sheet_name in [
-                            (wagerauditStaging_file, Path(self.wagerAudit_Staging_path).stem[:31]),
-                            (wagerauditProduction_file, Path(self.wagerAudit_Production_path).stem[:31]),
-                            (operatorsheet_file, Path(self.operator_wagerSheet_path).stem[:31]),
-                            (audit_results_wagers, 'Wager Audit Results'),
-                            (opgamelistStaging_file, Path(self.opGameList_stagingReport_path).stem[:31]),
-                            (opgamelistProduction_file, Path(self.opGameList_productionReport_path).stem[:31]),
-                            (agilereport_file, Path(self.agileReport_path).stem[:31]),
-                            (audit_results_versions, 'GameVersion Audit Results'),
+                            (wagerAudit_StagingFile, Path(self.wagerAudit_Staging_path).stem[:31]),
+                            (wagerAudit_ProductionFile, Path(self.wagerAudit_Production_path).stem[:31]),
+                            (operatorSheet_file, Path(self.operator_wagerSheet_path).stem[:31]),
+                            (audit_results_wagerAudit, 'Wager Audit Results'),
+                            (opGameList_StagingFile, Path(self.opGameList_stagingReport_path).stem[:31]),
+                            (opGameList_ProductionFile, Path(self.opGameList_productionReport_path).stem[:31]),
+                            (agileReport_file, Path(self.agileReport_path).stem[:31]),
+                            (audit_results_gameVersions, 'Game&Math Version Audit Results'),
                             (combined_missing_games, 'Missing Games')
                         ]:
                             worksheet = writer.sheets[sheet_name]
@@ -1087,10 +1083,9 @@ class FullAuditProgram:
                                         worksheet.write(row, col, "", cell_format)
                                     else:
                                         worksheet.write(row, col, val, cell_format)
-                                                              
-                            
-                            normalize = df is audit_results_wagers #Only normalize values for wager audit results
-                            auditResults_versions_skipColumns = ['Jurisdiction', 'Game'] #Columns to specifically skip for audit_results_versions
+
+                            normalize = df is audit_results_wagerAudit #Only normalize values for wager audit results
+                            auditResults_versions_skipColumns = ['Jurisdiction', 'Game'] #Columns to specifically skip for audit_results_gameVersions from red highlighting
 
                             #Iterates through rows/columns to apply formatting for mismatches
                             for row in range(1, len(df) + 1):
@@ -1102,7 +1097,7 @@ class FullAuditProgram:
 
                                         #Detect single columns for combined columns dynamically
                                         single_column = column_name in auditResults_versions_skipColumns or column_name == 'Game' or remaining_columns < 3
-                                        #Excluding column name 'Jurisdiction' from being highlighted red due to inconsistencies on Agile PLM Report
+                                        #Excluding column name 'Jurisdiction'/'Game' from being highlighted since columns are combined into one
                                         if single_column:
                                             val = df.iat[row - 1, col_idx]
                                             worksheet.write(row, col_idx, val)
@@ -1114,7 +1109,7 @@ class FullAuditProgram:
                                         val2 = df.iat[row - 1, col_idx + 1] if remaining_columns > 1 else None
                                         val3 = df.iat[row - 1, col_idx + 2] if remaining_columns > 2 else None
 
-                                        if normalize: #Normalize values for audit_results_wagers only (if necessary)
+                                        if normalize: #Normalize values for audit_results_wagerAudit only (if necessary)
                                             val1 = self.normalize_value(val1) if isinstance(val1, (int, float, str)) else val1
                                             val2 = self.normalize_value(val2) if isinstance(val2, (int, float, str)) else val2
                                             val3 = self.normalize_value(val3) if isinstance(val3, (int, float, str)) else val3
@@ -1126,8 +1121,8 @@ class FullAuditProgram:
                                         if val3 is not None:
                                             columns_in_groups.append("" if pd.isna(val3) or val3 is None else val3)
 
-                                        #Only apply to audit_results_wagers and audit_results_versions
-                                        if df is audit_results_wagers or df is audit_results_versions:
+                                        #Only apply red highlithgting to audit_results_wagerAudit and audit_results_gameVersions
+                                        if df is audit_results_wagerAudit or df is audit_results_gameVersions:
                                             n_vals = len(columns_in_groups)
                                             highlight_flags = [False] * n_vals #Flags for highlighting
 
@@ -1168,8 +1163,7 @@ class FullAuditProgram:
 
             #Success message when results are True and all passes successfully
             if all_valid:
-                messagebox.showinfo("Success!", "All files processed successfully and Wager & Game Version Audit Results are complete!")
+                messagebox.showinfo("Success!", "All files processed successfully and Wager & Game/Math Version Audit Results are complete!")
                 return True
             else:
                 return False
-            
