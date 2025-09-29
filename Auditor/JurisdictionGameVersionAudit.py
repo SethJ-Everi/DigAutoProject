@@ -60,7 +60,7 @@ class JurisdictionGameVersionAuditProgram:
         content_frame.pack(fill="both", expand=True, padx=20, pady=10)
 
         #Welcome display text and label
-        welcome_text = "\nJurisdiction Game Version \nAudit Comparison Tool\n"
+        welcome_text = "\nJurisdiction Game Version\nAudit Comparison Tool\n"
         self.welcome_label = tk.Label(content_frame, text=welcome_text, font=("TkDefaultFont", 15, "bold"), fg='white', bg='#2b2b2b')
         self.welcome_label.pack(pady=10)
 
@@ -263,7 +263,7 @@ class JurisdictionGameVersionAuditProgram:
     def detect_header_row(self, file_path, header_version_indicator=["game_name", "GameName"]):
         #Handles automatically detecting header rows by scanning all rows and searching for header indicator
         if not file_path.endswith('.xlsx'):
-            raise ValueError("Unsupported file format. Only ('.xlsx') file types are supported.") #Raise error for incorrect file formats
+            raise ValueError("Unsupported file format. Only Excel (.xlsx) files are supported.") #Raise error for incorrect file formats
         
         version_data = pd.read_excel(file_path, header=None, engine='openpyxl') #Checks all rows for header
 
@@ -278,11 +278,12 @@ class JurisdictionGameVersionAuditProgram:
             versionrow_values = [str(cell).strip() for cell in row.values if isinstance(cell, str)]
             lowered_values = [val.lower() for val in versionrow_values]
 
-            if any(header_indicator.lower() in val for header_indicator in header_version_indicator for val in lowered_values):
+            if any(header.lower() in val for header in header_version_indicator for val in lowered_values):
                 print(f"Header row detected at index {idx}")
                 return idx
-            
-        raise ValueError("No matching header row found. Check files to ensure proper files were uploaded and try again.") #Raise error for when headers are not found
+
+        print("No matching header row found.")
+        return None    
 
     def partialMatching_GameNames(self, supportPanel_report, agileReport, min_length_ratio=0.4):
         shorter, longer = sorted([supportPanel_report, agileReport], key=len) #Sort game names by length so 'shorter' is always the smaller one
@@ -361,6 +362,16 @@ class JurisdictionGameVersionAuditProgram:
                     messagebox.showerror("Error!", f"Column renaming failed: {str(e)}") #Show error if there's an issue renaming columns to 'Game Name'
                     return False
                 
+                #Drop rows containing unwanted text from Agile PLM report specifically OR Blank rows completely
+                unwanted_keywords_agilePLMReport = ['applied filters:']
+                agileReport_file = agileReport_file[~agileReport_file.apply(
+                    lambda row: (
+                        any(isinstance(cell, str) and any(kw in cell.lower() for kw in unwanted_keywords_agilePLMReport) for cell in row)
+                        or all(cell == "" or pd.isna(cell) for cell in row)
+                    ),
+                    axis=1
+                )].reset_index(drop=True)
+
                 #Normalize column names and strip spaces
                 supportPanel_report_file.columns = supportPanel_report_file.columns.astype(str).str.strip()
                 agileReport_file.columns = agileReport_file.columns.astype(str).str.strip()
