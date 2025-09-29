@@ -65,7 +65,7 @@ class GameVersionAuditProgram:
         content_frame.pack(fill="both", expand=True, padx=20, pady=10)
 
         #Welcome display text
-        welcome_text = "\nGame Version Audit \nComparison Tool\n"
+        welcome_text = "\nGame Version\nAudit Comparison Tool\n"
         self.welcome_label = tk.Label(content_frame, text=welcome_text, font=("TkDefaultFont", 15, "bold"), fg='white', bg='#2b2b2b')
         self.welcome_label.pack(pady=10)
 
@@ -250,7 +250,7 @@ class GameVersionAuditProgram:
 
     def clear_button(self):
         answer = messagebox.askyesno(
-            "Confirm Clear?",
+            "Confirm Clear",
             "Are you sure you want to clear all files selected?"
         )
         if answer:
@@ -288,11 +288,7 @@ class GameVersionAuditProgram:
             return name.lower() #Convert to lowercase
         return name
                 
-    def detect_version_row(self, file_path, header_version_indicator="Jurisdiction", unwanted_keywords=None):
-        #Default unwanted words if none are provided
-        if unwanted_keywords is None:
-            unwanted_keywords = ['Applied filters:', 'is not (Blank)']
-
+    def detect_version_row(self, file_path, header_version_indicator="Jurisdiction"):
         #Handles automatically detecting header rows by scanning all rows
         if file_path.endswith('.xlsx'): #Read Excel file
             version_data = pd.read_excel(file_path, header=None, engine='openpyxl') #Checks all rows for header
@@ -321,17 +317,6 @@ class GameVersionAuditProgram:
         else:
             raise ValueError("Unsupported file format. Only ('.csv') and ('.xlsx') file types are supported.") #Raise error for incorrect file formats
         
-        #Drop row containing unwanted text from Agile PLM Report
-        rows_to_drop = [] #Store indexes of rows to drop
-        for idx, row in version_data.iterrows():
-            row_text = ' '.join(str(cell).lower() for cell in row if isinstance(cell, str)) #Join cell values into a single string, lowercase it
-            if any(keyword in row_text for keyword in unwanted_keywords): #Mark row for deletion if found
-                print(f"Unwanted verbiage detected on Agile PLM Report at row {idx}, removing that row.")
-                rows_to_drop.append(idx)
-
-        #Drop row with unwanted text and reset index
-        version_data = version_data.drop(index=rows_to_drop).reset_index(drop=True)
-
         for idx, row in version_data.iterrows(): #Iterate through each row, convert all values to string, strip spaces
             versionrow_values = [str(cell).strip() for cell in row.values if isinstance(cell, str)]
             lowered_values = [val.lower() for val in versionrow_values]
@@ -341,69 +326,60 @@ class GameVersionAuditProgram:
                 print(f"Header row detected at index {idx}")
                 return idx
             
-        raise ValueError("No matching header row found. Check files to ensure proper files were uploaded and try again.") #Raise error for when headers are not found
+        print("No matching header row found.")
+        return None
 
-    def partialMatching_GameNames(self, *Game, min_similarity=0.8):
-        #Handles partial Game Name matches and returns true if average similarity across all pairs >= min_similarity (EX: Off The Hook; Good Ol Fishin Hole in the Agile Report vs Good Ol Fishin Hole in Op GameList Reports)
-        n = len(Game)
-        similarities = []
+    def partialMatching_GameNames(self, opGameList_Staging, opGameList_Production, min_length_ratio=0.4):
+        shorter, longer = sorted([opGameList_Staging, opGameList_Production], key=len) #Sort game names by length so 'shorter' is always the smaller one
+        return shorter in longer and len(shorter) / len(longer) >= min_length_ratio #Checks for 1.substring match / 2.at least min length ratio of 50%
 
-        for i in range(n):
-            for j in range(i + 1, n):
-                similarity = SequenceMatcher(None, Game[i], Game[j]).ratio()
-                similarities.append(similarity)
-
-        average_similarity = sum(similarities) / len(similarities) if similarities else 0
-
-        lengths = [len(t) for t in Game]
-        if max(lengths) / min(lengths) >= 2:
-            return False, average_similarity
-
-        return average_similarity >= min_similarity, average_similarity
-    
-    def matching_GameNames(self, opGameList_StagingReport_gameNames, opGameList_ProductionReport_gameNames, agileReport_gameNames, threshold=85, min_similarity=0.8):
+    def matching_GameNames(self, opGameList_StagingReport_gameNames, opGameList_ProductionReport_gameNames, agileReport_gameNames=None, threshold=85):
         #Handles Game Name exact + partial matches for all three files
         gameName_matches = []
-        matched_opGameList_Staging, matched_opGameList_Production, matched_agileReport = set(), set(), set()
+        gameName_matches_opGameList_Production = set()
+        used_agileReport = set() if agileReport_gameNames else None
 
-        for t1 in opGameList_StagingReport_gameNames:
-            for t2 in opGameList_ProductionReport_gameNames:
-                for t3 in agileReport_gameNames:
-                    if t1 in matched_opGameList_Staging and t2 in matched_opGameList_Production and t3 in matched_agileReport:
-                        continue
+        for opGameList_StagingReport in opGameList_StagingReport_gameNames:
+            best_score2 = 0
+            best_match2 = None
 
-                    if t1 == t2 == t3:
-                        gameName_matches.append((t1, t2, t3, t3))
-                        matched_opGameList_Staging.add(t1)
-                        matched_opGameList_Production.add(t2)
-                        matched_agileReport.add(t3)
-                        print(f"DEBUG: Exact match: '{t1}'")
-                        continue
+            for opGameList_ProductionReport in opGameList_ProductionReport_gameNames:
+                if opGameList_ProductionReport in gameName_matches_opGameList_Production:
+                    continue
 
-                    score_t1_t2 = SequenceMatcher(None, t1, t2).ratio() * 100
-                    score_t2_t3 = SequenceMatcher(None, t2, t3).ratio() * 100
-                    score_t1_t3 = SequenceMatcher(None, t1, t3).ratio() * 100
-                    average_score = (score_t1_t2 + score_t2_t3 + score_t1_t3) / 3
+                score2 = SequenceMatcher(None, opGameList_StagingReport, opGameList_ProductionReport).ratio() * 100
+                if self.partialMatching_GameNames(opGameList_StagingReport, opGameList_ProductionReport):
+                    score2 = max(score2, threshold + 1)
 
-                    if average_score >= threshold:
-                        gameName_matches.append((t1, t2, t3, t3))
-                        matched_opGameList_Staging.add(t1)
-                        matched_opGameList_Production.add(t2)
-                        matched_agileReport.add(t3)
-                        print(f"DEBUG: EXACT match triggered: t1='{t1}', t2='{t2}', t3='{t3}' -> (avg_score={average_score:.2f})") #DEBUG for exact match triggers
-                        continue
+                if score2 > best_score2:
+                    best_score2 = score2
+                    best_match2 = opGameList_ProductionReport
 
-                    #partial matching logic only if agile plm report differs
-                    if t3 != t1:
-                        partial_results, average_similarity = self.partialMatching_GameNames(t1, t2, t3, min_similarity=min_similarity)
-                        if partial_results:
-                            gameName_matches.append((t1, t2, t3, t1))
-                            matched_opGameList_Staging.add(t1)
-                            matched_opGameList_Production.add(t2)
-                            matched_agileReport.add(t3)
-                            print(f"DEBUG: Partial match triggered File3: '{t3}' -> '{t1}' -> avg_similarities={average_similarity:.3f}") #DEBUG for partia match triggers
+            if best_score2 >= threshold and best_match2:
+                gameName_matches_opGameList_Production.add(best_match2)
 
-        return gameName_matches #Return the full list of matched game names and their scores
+                if agileReport_gameNames:
+                    best_score3 = 0
+                    best_match3 = None
+                    for agileReport in agileReport_gameNames:
+                        if agileReport in used_agileReport:
+                            continue
+
+                        score3 = SequenceMatcher(None, opGameList_StagingReport, agileReport).ratio() * 100
+                        if self.partialMatching_GameNames(opGameList_StagingReport, agileReport):
+                            score3 = max(score3, threshold + 1)
+
+                        if score3 > best_score3:
+                            best_score3 = score3
+                            best_match3 = agileReport
+
+                    if best_score3 >= threshold and best_match3:
+                        used_agileReport.add(best_match3)
+                        gameName_matches.append((opGameList_StagingReport, best_match2, best_match3, best_score2, best_score3))
+                else:
+                    gameName_matches.append((opGameList_StagingReport, best_match2, best_score2))
+
+        return gameName_matches
 
     def compare_files(self, file_path):
             #Checks if all required files are missing
@@ -452,6 +428,16 @@ class GameVersionAuditProgram:
                     agileReport_file = pd.read_excel(self.agileReport_path, header=agilereport_header_row, engine='openpyxl', dtype=str) #File format is downloaded as xlsx therefore will only support this file type
                 else:
                     raise ValueError("Unsupported file format for Agile PLM Report. Only ('.xlsx') file type is supported.") #Raise error if incorrect file type is selected
+                
+                #Drop rows containing unwanted text from Agile PLM report specifically OR Blank rows completely
+                unwanted_keywords_agilePLMReport = ['applied filters:']
+                agileReport_file = agileReport_file[~agileReport_file.apply(
+                    lambda row: (
+                        any(isinstance(cell, str) and any(kw in cell.lower() for kw in unwanted_keywords_agilePLMReport) for cell in row)
+                        or all(cell == "" or pd.isna(cell) for cell in row)
+                    ),
+                    axis=1
+                )].reset_index(drop=True)
 
                 #Normalize column names, strip spaces
                 opGameList_StagingFile.columns = opGameList_StagingFile.columns.astype(str).str.strip()
@@ -529,7 +515,6 @@ class GameVersionAuditProgram:
                     list(opGameList_ProductionFile['Game']),
                     list(agileReport_file['Game']),
                     threshold=85,
-                    min_similarity=0.8
                 )
 
                 #Build map for agile plm report game name to op gamelist staging (partial matches)
@@ -576,25 +561,25 @@ class GameVersionAuditProgram:
                 #Collect matched rows for final audit results only if all three files have the same Game Name
                 opGameList_stagingFile_matchedGameNames, opGameList_productionFile_matchedGameNames, agileReport_matchedGameNames, gameName_rows = [], [], [], []
 
-                for t1, t2, t3_original, t3_aligned in gameName_matches_versionAudit:
+                for t1, t2, t3, *_ in gameName_matches_versionAudit:
                     row1_staging_df = opGameList_StagingFile.loc[opGameList_StagingFile['Game'] == t1]
                     row2_production_df = opGameList_ProductionFile.loc[opGameList_ProductionFile['Game'] == t2]
-                    row3_agileReport_df = agileReport_file_aligned.loc[agileReport_file_aligned['Game'] == t3_aligned]
+                    row3_agileReport_df = agileReport_file.loc[agileReport_file['Game'] == t3]
 
                     #Skip if any row is missing
                     if row1_staging_df.empty or row2_production_df.empty or row3_agileReport_df.empty:
                         continue
 
-                    row1_idx_staging = row1_staging_df.iloc[0]
-                    row2_idx_production = row2_production_df.iloc[0]
-                    row3_idx_agileReport = row3_agileReport_df.iloc[0].copy()
+                    row1_idx_staging = row1_staging_df.iloc[0].to_dict()
+                    row2_idx_production = row2_production_df.iloc[0].to_dict()
+                    row3_idx_agileReport = row3_agileReport_df.iloc[0].copy().to_dict()
 
-                    if t3_aligned != t3_original:
+                    if t3 != t1:
                         row3_idx_agileReport['Game'] = t1
 
-                    opGameList_stagingFile_matchedGameNames.append(row1_idx_staging.to_dict())
-                    opGameList_productionFile_matchedGameNames.append(row2_idx_production.to_dict())
-                    agileReport_matchedGameNames.append(row3_idx_agileReport.to_dict())
+                    opGameList_stagingFile_matchedGameNames.append(row1_idx_staging)
+                    opGameList_productionFile_matchedGameNames.append(row2_idx_production)
+                    agileReport_matchedGameNames.append(row3_idx_agileReport)
                     gameName_rows.append({'Game': t1})
 
                 #Build results table
