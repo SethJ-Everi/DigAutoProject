@@ -287,9 +287,8 @@ class JurisdictionGameVersionAuditProgram:
 
     def partialMatching_GameNames(self, supportPanel_report, agileReport, min_length_ratio=0.4):
         shorter, longer = sorted([supportPanel_report, agileReport], key=len) #Sort game names by length so 'shorter' is always the smaller one
-        #Checks for 1. substring match 2. at least min length ratio of 50%
-        return shorter in longer and len(shorter) / len(longer) >=min_length_ratio
-    
+        return shorter in longer and len(shorter) / len(longer) >= min_length_ratio #Checks for 1.substring match / 2.at least min length ratio of 50%
+
     def matching_GameNames(self, supportPanel_report_gameNames, agileReport_gameNames, threshold=85):
         #Handles Game Name matches that may be different on both reports. For ex, Off The Hook; Good Ol Fishin Hole in the Agile Report vs Good Ol Fishin Hole in the Support Panel File
         gameName_matches = [] #List to store final matches
