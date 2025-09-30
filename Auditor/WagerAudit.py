@@ -571,7 +571,7 @@ class WagerAuditProgram:
 
                         #Side by side columns from all sheets to the DataFrame
                         audit_results_wagers[f"{wager_column}\n(Wager Staging Audit File): "] = wagerAudit_StagingFile_matchedGameNames[wager_column]
-                        audit_results_wagers[f"{wager_column}\n(Wager Production Audit File): "] = wagerAudit_StagingFile_matchedGameNames[wager_column]
+                        audit_results_wagers[f"{wager_column}\n(Wager Production Audit File): "] = wagerAudit_ProductionFile_matchedGameNames[wager_column]
                         audit_results_wagers[f"{wager_column}\n({Path(self.operator_wagerSheet_path).stem[:31]}): "] = operatorSheet_file_matchedGameNames[wager_column]
 
                 audit_results_wagers['Game'] = wagerAudit_StagingFile_matchedGameNames['Game'].values
@@ -726,3 +726,4 @@ class WagerAuditProgram:
             else:
                 return False
             
+
