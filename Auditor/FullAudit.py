@@ -1129,12 +1129,15 @@ class FullAuditProgram:
                                             for v in columns_in_groups:
                                                 value_counts[v] = value_counts.get(v, 0) + 1
 
-                                            max_frequency = max(value_counts.values()) #Find the majority value
-
-                                            #Flag any value that is not in majority
-                                            for i, v in enumerate(columns_in_groups):
-                                                if value_counts[v] < max_frequency:
-                                                    highlight_flags[i] = True
+                                            #Highlight all values if all do not match
+                                            if len(value_counts) ==  n_vals:
+                                                highlight_flags = [True] * n_vals
+                                            else:
+                                                max_frequency = max(value_counts.values()) #Find the majority value
+                                                #Flag any value that is not in majority
+                                                for i, v in enumerate(columns_in_groups):
+                                                    if value_counts[v] < max_frequency:
+                                                        highlight_flags[i] = True
 
                                             #Write values to worksheet with red formatting
                                             for i, v in enumerate(columns_in_groups):
@@ -1165,4 +1168,3 @@ class FullAuditProgram:
                 return True
             else:
                 return False
-
