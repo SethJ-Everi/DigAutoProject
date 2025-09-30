@@ -226,8 +226,6 @@ class FullAuditProgram:
         else: #Show message box to user the clear was canceled
             messagebox.showinfo("Canceled!",
                                 "Clear canceled.")
-        #Disable the submit button and turn red
-        self.submit_button.config(state=tk.DISABLED, bg="#FF6F6F")
 
     def upload_wagerAudit_Staging(self):
         self.wagerAudit_Staging_path = filedialog.askopenfilename(
@@ -1167,3 +1165,4 @@ class FullAuditProgram:
                 return True
             else:
                 return False
+
