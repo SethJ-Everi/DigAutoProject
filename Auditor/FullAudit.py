@@ -659,10 +659,16 @@ class FullAuditProgram:
                 wagerAudit_ProductionFile['Game'] = wagerAudit_ProductionFile['Game'].apply(self.normalize_name)
                 operatorSheet_file['Game'] = operatorSheet_file['Game'].apply(self.normalize_name)
 
-                #Fill NaN values with 'N/A' for consistency during comparison/export
-                wagerAudit_StagingFile = wagerAudit_StagingFile.fillna('N/A')
-                wagerAudit_ProductionFile = wagerAudit_ProductionFile.fillna('N/A')
-                operatorSheet_file = operatorSheet_file.fillna('N/A')
+                #Skip Game column and normalize values in the other columns and fill NaN values with 'N/A'
+                for wager_column in wagerAudit_StagingFile.columns:
+                    if wager_column != 'Game':
+                        wagerAudit_StagingFile[wager_column] = wagerAudit_StagingFile[wager_column].fillna('N/A').apply(self.normalize_value)
+                for wager_column in wagerAudit_ProductionFile.columns:
+                    if wager_column != 'Game':
+                        wagerAudit_ProductionFile[wager_column] = wagerAudit_ProductionFile[wager_column].fillna('N/A').apply(self.normalize_value)
+                for wager_column in operatorSheet_file.columns:
+                    if wager_column != 'Game':
+                        operatorSheet_file[wager_column] = operatorSheet_file[wager_column].fillna('N/A').apply(self.normalize_value)
 
                 #Sorts Game columns alphabetically in all DataFrames
                 wagerAudit_StagingFile = wagerAudit_StagingFile.sort_values(by='Game', ascending=True)
@@ -674,102 +680,77 @@ class FullAuditProgram:
                 wagerAudit_ProductionFile = wagerAudit_ProductionFile.drop_duplicates(subset='Game')
                 operatorSheet_file = operatorSheet_file.drop_duplicates(subset='Game')
 
-                #Ensures DataFrames have only matching Game values
-                common_games_wager = (
-                    set(wagerAudit_StagingFile['Game']) &
-                    set(wagerAudit_ProductionFile['Game']) &
-                    set(operatorSheet_file['Game'])
-                )
+                #File labels for labeling on Missing Games sheet
+                file_labels = ['Staging Wager Audit File',
+                               'Production Wager Audit File',
+                               'Operator Wager Configuration Sheet']
 
                 #Get sets of Game Names from each file
                 games_wagerAudit_StagingFile = set(wagerAudit_StagingFile['Game'])
                 games_wagerAudit_ProductionFile = set(wagerAudit_ProductionFile['Game'])
                 games_operatorSheet_file = set(operatorSheet_file['Game'])
 
+                #Ensures DataFrames have only matching Game values
+                common_games_wager = games_wagerAudit_StagingFile & games_wagerAudit_ProductionFile & games_operatorSheet_file
+
                 #Union of all Game Names across all three files
-                all_games = games_wagerAudit_StagingFile | games_wagerAudit_ProductionFile | games_operatorSheet_file
+                all_games = sorted(games_wagerAudit_StagingFile | games_wagerAudit_ProductionFile | games_operatorSheet_file)
+                allFiles_set = [games_wagerAudit_StagingFile, games_wagerAudit_ProductionFile, games_operatorSheet_file]
 
-                allmissing_games = [] #Empty list to collect missing Game Names
+                allMissing_games = [] #Empty list to collect missing Game Names
 
-                #Loop through all Game Names to see which are missing
                 for game in all_games:
-                    missing_in = []
-                    if game not in games_wagerAudit_StagingFile:
-                        missing_in.append('Missing in Staging Wager Audit File')
-                    if game not in games_wagerAudit_ProductionFile:
-                        missing_in.append('Missing in Production Wager Audit File')
-                    if game not in games_operatorSheet_file:
-                        missing_in.append('Missing in Operator Wager Configuration Sheet')
-
+                    missing_in = [
+                        file_labels[i] for i, game_sets in enumerate(allFiles_set)
+                        if game not in game_sets
+                    ]
                     #Append one row per Game Name with combined missing info
                     if missing_in:
                         combined_status = ', '.join(missing_in)
-                        allmissing_games.append({
+                        allMissing_games.append({
                             'Game': game,
-                            'Status': combined_status
+                            'Status': f'Missing in {combined_status}'
                         })
 
                 #Convert missing Game Names list of dicts into a DataFrame and sort it for Missing Games Sheet
-                missing_games_wager = pd.DataFrame(allmissing_games).sort_values(by='Game').reset_index(drop=True)
+                missing_games_wager = pd.DataFrame(allMissing_games).sort_values(by='Game').reset_index(drop=True)
 
-                #Filer rows based on common Game Names in all three files
-                wagerAudit_StagingFile = wagerAudit_StagingFile[wagerAudit_StagingFile['Game'].isin(common_games_wager)]
-                wagerAudit_ProductionFile = wagerAudit_ProductionFile[wagerAudit_ProductionFile['Game'].isin(common_games_wager)]
-                operatorSheet_file = operatorSheet_file[operatorSheet_file['Game'].isin(common_games_wager)]
-
-                #Sort both DataFrames by 'Game' column and reset index to maintain alignment
-                wagerAudit_StagingFile = wagerAudit_StagingFile.sort_values(by='Game', ascending=True).reset_index(drop=True)
-                wagerAudit_ProductionFile = wagerAudit_ProductionFile.sort_values(by='Game', ascending=True).reset_index(drop=True)
-                operatorSheet_file = operatorSheet_file.sort_values(by='Game', ascending=True).reset_index(drop=True)
+                #Filter rows based on common Game Names in all three files and sort by game
+                wagerAudit_StagingFile_matchedGameNames = wagerAudit_StagingFile[wagerAudit_StagingFile['Game'].isin(common_games_wager)].sort_values(by='Game', ascending=True).reset_index(drop=True)
+                wagerAudit_ProductionFile_matchedGameNames = wagerAudit_ProductionFile[wagerAudit_ProductionFile['Game'].isin(common_games_wager)].sort_values(by='Game', ascending=True).reset_index(drop=True)
+                operatorSheet_file_matchedGameNames = operatorSheet_file[operatorSheet_file['Game'].isin(common_games_wager)].sort_values(by='Game', ascending=True).reset_index(drop=True)
 
                 #DataFrame for Wager Audit Results to hold side-by-side columns for comparison
-                audit_results_wagerAudit = pd.DataFrame()
+                audit_results_wagerAudit = pd.DataFrame({'Game': wagerAudit_StagingFile_matchedGameNames['Game'].values})
 
                 #Single loop to handle renamed columns to normalize values and add columns side by side
-                for wager_column in wagerAudit_StagingFile.columns:
-                    wagerAudit_StagingFile[wager_column] = wagerAudit_StagingFile[wager_column].apply(self.normalize_value) #Normalize Staging Wager Audit File columns
-
-                    #Checks if column exists in Wager Production Audit file
-                    if wager_column in wagerAudit_ProductionFile.columns:
-                        wagerAudit_ProductionFile[wager_column] = wagerAudit_ProductionFile[wager_column].apply(self.normalize_value) #Normalize Production Wager Audit File
-
-                    #Checks if column exists in Operator Wager Config Sheet
-                    if wager_column in operatorSheet_file.columns:
-                        operatorSheet_file[wager_column] = operatorSheet_file[wager_column].apply(self.normalize_value) #Normalize Operator Wager Config Sheet columns
-
-                    if wager_column == 'Game': #Skips 'Game' column as it will be combined into one column
+                for wager_column in wagerAudit_StagingFile_matchedGameNames.columns:
+                    if wager_column == 'Game':
                         continue
+                    if wager_column not in wagerAudit_StagingFile_matchedGameNames.columns:
+                        raise KeyError(f"'{wager_column}' not found in 'wagerAudit_StagingFile_matchedGameNames' matched rows dataset.")
+                    if wager_column not in wagerAudit_ProductionFile_matchedGameNames.columns:
+                        raise KeyError(f"'{wager_column}' not found in 'wagerAudit_ProductionFile_matchedGameNames' matched rows dataset.")
+                    if wager_column not in operatorSheet_file_matchedGameNames.columns:
+                        raise KeyError(f"'{wager_column}' not found in 'operatorSheet_file_matchedGameNames' matched rows dataset.")
+                    
+                    if wager_column in wagerAudit_StagingFile_matchedGameNames.columns and wager_column in wagerAudit_ProductionFile_matchedGameNames.columns and wager_column in operatorSheet_file_matchedGameNames.columns:
+                        wagerAudit_StagingFile_matchedGameNames[wager_column] = wagerAudit_StagingFile_matchedGameNames[wager_column].apply(self.normalize_value).reset_index(drop=True)
+                        wagerAudit_ProductionFile_matchedGameNames[wager_column] = wagerAudit_ProductionFile_matchedGameNames[wager_column].apply(self.normalize_value).reset_index(drop=True)
+                        operatorSheet_file_matchedGameNames[wager_column] = operatorSheet_file_matchedGameNames[wager_column].apply(self.normalize_value).reset_index(drop=True)
 
-                    if (
-                        wager_column in wagerAudit_StagingFile.columns and
-                        wager_column in wagerAudit_ProductionFile.columns and
-                        wager_column in operatorSheet_file.columns
-                    ):
                         #Side by side columns from all sheets to the DataFrame
-                        audit_results_wagerAudit[f"{wager_column}\n(Staging Wager Audit File): "] = wagerAudit_StagingFile[wager_column]
-                        audit_results_wagerAudit[f"{wager_column}\n(Production Wager Audit File): "] = wagerAudit_ProductionFile[wager_column]
-                        audit_results_wagerAudit[f"{wager_column}\n({Path(self.operator_wagerSheet_path).stem[:31]}): "] = operatorSheet_file[wager_column]
-                    else:
-                        if wager_column not in wagerAudit_StagingFile.columns:
-                            print(f"'{wager_column}' not found in Staging Wager Audit File.")
-                        if wager_column not in wagerAudit_ProductionFile.columns:
-                            print(f"'{wager_column}' not found in Production Wager Audit File.")
-                        if wager_column not in operatorSheet_file.columns:
-                            print(f"'{wager_column}' not found in Operator Wager Configuration Sheet.")
+                        audit_results_wagerAudit[f"{wager_column}\n(Wager Staging Audit File): "] = wagerAudit_StagingFile_matchedGameNames[wager_column]
+                        audit_results_wagerAudit[f"{wager_column}\n(Wager Production Audit File): "] = wagerAudit_ProductionFile_matchedGameNames[wager_column]
+                        audit_results_wagerAudit[f"{wager_column}\n({Path(self.operator_wagerSheet_path).stem[:31]}): "] = operatorSheet_file_matchedGameNames[wager_column]
 
-                        #Collect missing games from all files for Missing Games sheet
-                        missing_games_wager = pd.concat(
-                            [missing_games_wager, pd.DataFrame({'Missing Games': [wager_column]})], ignore_index=True
-                            )
-
-                #Combine 'Game' columns for final audit_results_wagerAudit
-                audit_results_wagerAudit['Game'] = wagerAudit_StagingFile['Game'].values
+                audit_results_wagerAudit['Game'] = wagerAudit_StagingFile_matchedGameNames['Game'].values
                 cols = list(audit_results_wagerAudit.columns)
                 cols.remove('Game')
                 cols.insert(0, 'Game')
                 audit_results_wagerAudit = audit_results_wagerAudit[cols]
 
-                audit_results_wagerAudit = audit_results_wagerAudit.sort_values(by='Game', ascending=True).reset_index(drop=True) #Final sorting for audit_results_wagerAudit
+                audit_results_wagerAudit = audit_results_wagerAudit.sort_values(by='Game', ascending=True).reset_index(drop=True)
 
             except Exception as e:
                 all_valid = False
