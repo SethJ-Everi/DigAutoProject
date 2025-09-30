@@ -246,8 +246,6 @@ class JurisdictionGameVersionAuditProgram:
         else: #Show message box to user the clear was canceled
             messagebox.showinfo("Canceled!",
                                 "Clear canceled and files remain as is.")
-        #Disable the submit button and turn red
-        self.submit_button.config(state=tk.DISABLED, bg="#FF6F6F")
 
     def normalize_name(self, name):
         #Standardize game name column; convert to lowercase, removes all spaces, removes apostrophes
@@ -547,3 +545,4 @@ class JurisdictionGameVersionAuditProgram:
                 return True
             else:
                 return False
+
