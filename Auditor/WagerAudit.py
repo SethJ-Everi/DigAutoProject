@@ -627,13 +627,28 @@ class WagerAuditProgram:
             
             #If all files are processed successfully and True, proceed with Excel writing
             if all_valid:
+                #Safety check to ensure file names are not the same so that it does not overwrite sheets accidently
+                sheet_names_wagerAuditGroup = [
+                    Path(self.wagerAudit_Staging_path).stem[:31],
+                    Path(self.wagerAudit_Production_path).stem[:31],
+                    Path(self.operator_wagerSheet_path).stem[:31]
+                ]
+                #Check for duplicates in wagerAuditGroup
+                if len(sheet_names_wagerAuditGroup) != len(set(sheet_names_wagerAuditGroup)):
+                    messagebox.showerror(
+                        "Error Duplicate File Names Detected!",
+                        f'Duplicate file names detected for files: {sheet_names_wagerAuditGroup}.\n'
+                        'Rename files to ensure unique sheet names and re-upload again.'
+                    )
+                    return #Stop execution until files are renamed properly
+
                 try:
-                    #Write to excel with formatting
+                    #Write to excel with formatting if file names are unique
                     with pd.ExcelWriter(file_path, engine='xlsxwriter') as writer:
                         #Write to Excel with sheet names (based on selected file paths) truncated to 31 characters
-                        wagerAudit_StagingFile.to_excel(writer, sheet_name=Path(self.wagerAudit_Staging_path).stem[:31], index=False) #Staging Wager Audit File raw data on sheet 1
-                        wagerAudit_ProductionFile.to_excel(writer, sheet_name=Path(self.wagerAudit_Production_path).stem[:31], index=False) #Production Wager Audit File raw data on sheet 2
-                        operatorSheet_file.to_excel(writer, sheet_name=Path(self.operator_wagerSheet_path).stem[:31], index=False) #Op Wager Config Sheet raw data on sheet 3
+                        wagerAudit_StagingFile.to_excel(writer, sheet_name=sheet_names_wagerAuditGroup[0], index=False) #Staging Wager Audit File raw data on sheet 1
+                        wagerAudit_ProductionFile.to_excel(writer, sheet_name=sheet_names_wagerAuditGroup[1], index=False) #Production Wager Audit File raw data on sheet 2
+                        operatorSheet_file.to_excel(writer, sheet_name=sheet_names_wagerAuditGroup[2], index=False) #Op Wager Config Sheet raw data on sheet 3
                         audit_results_wagers.to_excel(writer, sheet_name='Wager Audit Results', index=False) #Wager Audit Results with side by side comparison on sheet 4
                         missing_games_wager.to_excel(writer, sheet_name='Missing Games', index=False) #Missing games from all files on sheet 5
 
