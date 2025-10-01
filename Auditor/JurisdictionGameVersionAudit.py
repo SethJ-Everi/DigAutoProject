@@ -460,12 +460,26 @@ class JurisdictionGameVersionAuditProgram:
                 return False
 
             if all_valid:
+                #Safety check to ensure file names are not the same for Juris Game Version Audit Files so that it does not overwrite sheets accidently
+                sheet_names_jurisGameVersionAuditGroup = [
+                    Path(self.supportPanel_report_path).stem[:31],
+                    Path(self.agileReport_path).stem[:31]
+                ]
+                #Check for duplicates in gameVersionAuditGroup
+                if len(sheet_names_jurisGameVersionAuditGroup) != len(set(sheet_names_jurisGameVersionAuditGroup)):
+                    messagebox.showerror(
+                        "Error Duplicate File Names Detected!",
+                        f'Duplicate file names detected for files: {sheet_names_jurisGameVersionAuditGroup}.\n'
+                        'Rename files to ensure unique sheet names and re-upload again.'
+                    )
+                    return #Stop execution until files are renamed properly
+
                 try:
                     #Write to excel with formatting
                     with pd.ExcelWriter(file_path, engine='xlsxwriter') as writer:
-                        #Write to Excel with sheet names (based on selected file paths) truncated to 31 characters
-                        supportPanel_report_file.to_excel(writer, sheet_name=Path(self.supportPanel_report_path).stem[:31], index=False) #Support Panel File raw data in sheet 1
-                        agileReport_file.to_excel(writer, sheet_name=Path(self.agileReport_path).stem[:31], index=False) #Agile PLM Report raw data in sheet 2
+                        #Write to Excel with sheet names
+                        supportPanel_report_file.to_excel(writer, sheet_name=sheet_names_jurisGameVersionAuditGroup[0], index=False) #Support Panel File raw data in sheet 1
+                        agileReport_file.to_excel(writer, sheet_name=sheet_names_jurisGameVersionAuditGroup[1], index=False) #Agile PLM Report raw data in sheet 2
                         audit_results_versions.to_excel(writer, sheet_name='Game Version Audit Results', index=False) #Game Version Audit Results in sheet 3
                         missing_games.to_excel(writer, sheet_name='Missing Games', index=False) #Missing games that don't exist in both file in sheet 4
 
@@ -545,4 +559,3 @@ class JurisdictionGameVersionAuditProgram:
                 return True
             else:
                 return False
-
