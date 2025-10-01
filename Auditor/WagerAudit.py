@@ -283,43 +283,75 @@ class WagerAuditProgram:
             name = re.sub(r'\s+', '', name).strip() #Replace multiple spaces with no space, then strip leading/trailing
             return name.lower() #Convert to lowercase
         return name
-    
-    def normalize_value(self, val):
+
+    def normalize_value(self, val, is_percent_column=False):
         #Standardize values to handle percentages, currencies, and NaN values
         if pd.isna(val) or val == '' or val == ' ': #Return empty string for NaN, empty string, or whitespace
             return ''
         val = str(val).strip()
-        
-        #Handles converting percentages to decimals (ex: 90% -> 0.9)
-        if isinstance(val, str) and '%' in val:
-            try:
-                decimal_val = float(val.replace('%', '').strip()) / 100 #Convert to decimal
-                return str(math.ceil(decimal_val * 100) / 100) #Rounds up to the next decimal place (ex: 0.9595 to 0.96); rounding can be removed if op wager sheets have exact RTPs; will highlight red if not exact
+
+        #Handles converting percentages first
+        if '%' in val:
+            try:                
+                #Check if it contains a decimal place and normalize these values only (ex: 93.94%)
+                if '.' in val:
+                    number_part = val.replace('%', '').strip() #Strip percent symbol
+                    decimal_val = float(number_part) / 100 #Decimal percentage, divide by 100
+                    rounded_val = math.ceil(decimal_val * 100) / 100 #Rounds up to the next decimal place (ex: 0.9595 to 0.96); rounding can be removed if op wager sheets have exact RTPs; will highlight red if not exact
+                    percent_val = int(rounded_val * 100) #Convert decimnal back to whole percent
+                    return f"{percent_val}%" #Add back %
+                else:
+                    return val.strip() #Return as is stripping whitespace if already a percent
+
             except ValueError:
-                return '' #if conversion fails, return empty string
-        
+                return '' #If conversion fails, return empty string
+
+        #Handle numeric percentages only (ex: 90%) for excel sheets (Op wager config sheet) that are converted to numeric floats (ex: 0.90)
+        if is_percent_column:
+            try:
+                numeric_val = float(val)
+                if 0 < numeric_val < 1: #Only decimals between 0 and 1
+                    percent_val = int(math.ceil(numeric_val * 100))
+                    return f"{percent_val}%"
+            except ValueError:
+                pass #Not a numeric value continue
+
         #Handles multiple values separated by commas or space separated values (ex: $0.01, $0.05, $0.10, etc.)
         if any(sym in val for sym in ('$', '€', '£')): #Can add more currencies as needed
             currency_values = re.findall(r'[\$€£]?\d[\d,]*\.?\d*', val) #Regex to detect multiple values vs single values
-            
+
             if len(currency_values) > 1: #Checks for more than one currency value
                 parts = [v.strip() for v in val.split(',')] #Split by commas and strip whitespace from each individual value
                 normalized_values = [self.normalize_currency_values(p) for p in parts] #Normalize each stripped currency value using def normalize_currency_values methood
                 return ','.join(normalized_values) #Join normalized values back into a single comma-separated string
             else:
                 return self.normalize_currency_values(val) #Single value - normalize it directly
-        
+
         val = val.replace(' ', '') #Remove all spaces
-        return self.clean_number_string(val) #Clean string using def clean_number_string method
-    
+
+        #Handle comma-separated when currency is not included (ex: .25,1.00,5.00 -> 0.25,1,5)
+        if ',' in val:
+            parts = val.split(',')
+            normalized_parts = [self.clean_number_string(p) for p in parts]
+            val = ','.join(normalized_parts)
+        else:
+            val = self.clean_number_string(val)
+
+        #Capitalize any letters in the final normalized value (ex: 243Ways -> 243WAYS)
+        val = ''.join(char.upper() if char.isalpha() else char for char in val)
+
+        return val
+
     def clean_number_string(self, val):
-        #Handles values without currency symbols such as default lines & bet multipliers
+        #Handles values without currency symbols such as default lines & bet multipliers (or data entries for denoms such as .25, 1.00, 5.00 -> 0.25,1,5)
         try:
+            if val.startswith("."):
+                val = "0" + val
             num = float(val) #Convert to float
             if num.is_integer(): #Checks if float is an integer
                 return str(int(num)) #If integer, return as a string
             else:
-                return str(num) #If not an integer, return float as a string
+                return str(num).rstrip("0").rstrip(".")
         except ValueError:
             return str(val).strip() #If conversion fails (val is not a number), return original value as a stripped string
 
@@ -327,14 +359,16 @@ class WagerAuditProgram:
     #Helper method to handle currency symbols (ex: $€£) and commas; can expand currencies as needed
         try:
             val = re.sub(r'[$€£,]', '', val).strip() #Remove the currency symbols/commas using regex
+            if val.startswith("."):
+                val = "0" + val
             num = float(val) #Convert to float
             if num.is_integer(): #Checks if float is an integer
                 return str(int(num)) #If integer, convert to an integer then to a string (removes the decimal point)
             else:
-                return "{:.2f}".format(num) #If not an integer, return as string formatted with two decimal places
+                return str(num).rstrip("0").rstrip(".") #If not an integer, return as string formatted with two decimal places
         except ValueError:
             return '' #if conversion fails, return empty string
-            
+
     def detect_header_row(self, file_path, header_indicator="Game"):
     #Handles automatically detecting header rows by scanning all rows
         if file_path.endswith('.xlsx'): #Read Excel file
@@ -489,6 +523,9 @@ class WagerAuditProgram:
                 wagerAudit_ProductionFile['Game'] = wagerAudit_ProductionFile['Game'].apply(self.normalize_name)
                 operatorSheet_file['Game'] = operatorSheet_file['Game'].apply(self.normalize_name)
 
+                #Handle RTP% column for operatorSheet_file specifically
+                percent_column = ['RTP%']
+
                 #Skip Game column and normalize values in the other columns and fill NaN values with 'N/A'
                 for wager_column in wagerAudit_StagingFile.columns:
                     if wager_column != 'Game':
@@ -498,7 +535,7 @@ class WagerAuditProgram:
                         wagerAudit_ProductionFile[wager_column] = wagerAudit_ProductionFile[wager_column].fillna('N/A').apply(self.normalize_value)
                 for wager_column in operatorSheet_file.columns:
                     if wager_column != 'Game':
-                        operatorSheet_file[wager_column] = operatorSheet_file[wager_column].fillna('N/A').apply(self.normalize_value)
+                        operatorSheet_file[wager_column] = operatorSheet_file[wager_column].fillna('N/A').apply(lambda x: self.normalize_value(x, is_percent_column=(wager_column in percent_column)))
 
                 #Sorts Game columns alphabetically in all DataFrames
                 wagerAudit_StagingFile = wagerAudit_StagingFile.sort_values(by='Game', ascending=True)
@@ -726,4 +763,3 @@ class WagerAuditProgram:
             else:
                 return False
             
-
