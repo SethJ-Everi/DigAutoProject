@@ -361,20 +361,38 @@ class FullAuditProgram:
             return name.lower() #Convert to lowercase
         return name
 
-    def normalize_value(self, val):
+    def normalize_value(self, val, is_percent_column=False):
         #Standardize values to handle percentages, currencies, and NaN values
         if pd.isna(val) or val == '' or val == ' ': #Return empty string for NaN, empty string, or whitespace
             return ''
         val = str(val).strip()
 
-        #Handles converting percentages to decimals (ex: 90% -> 0.9)
-        if isinstance(val, str) and '%' in val:
-            try:
-                decimal_val = float(val.replace('%', '').strip()) / 100 #Convert to decimal
-                return str(math.ceil(decimal_val * 100) / 100) #Rounds up to the next decimal place (ex: 0.9595 to 0.96); rounding can be removed if op wager sheets have exact RTPs; will highlight red if not exact
+        #Handles converting percentages first
+        if '%' in val:
+            try:                
+                #Check if it contains a decimal place and normalize these values only (ex: 93.94%)
+                if '.' in val:
+                    number_part = val.replace('%', '').strip() #Strip percent symbol
+                    decimal_val = float(number_part) / 100 #Decimal percentage, divide by 100
+                    rounded_val = math.ceil(decimal_val * 100) / 100 #Rounds up to the next decimal place (ex: 0.9595 to 0.96); rounding can be removed if op wager sheets have exact RTPs; will highlight red if not exact
+                    percent_val = int(rounded_val * 100) #Convert decimnal back to whole percent
+                    return f"{percent_val}%" #Add back %
+                else:
+                    return val.strip() #Return as is stripping whitespace if already a percent
+
             except ValueError:
-                return '' #if conversion fails, return empty string
-        
+                return '' #If conversion fails, return empty string
+
+        #Handle numeric percentages only (ex: 90%) for excel sheets (Op wager config sheet) that are converted to numeric floats (ex: 0.90)
+        if is_percent_column:
+            try:
+                numeric_val = float(val)
+                if 0 < numeric_val < 1: #Only decimals between 0 and 1
+                    percent_val = int(math.ceil(numeric_val * 100))
+                    return f"{percent_val}%"
+            except ValueError:
+                pass #Not a numeric value continue
+
         #Handles multiple values separated by commas or space separated values (ex: $0.01, $0.05, $0.10, etc.)
         if any(sym in val for sym in ('$', '€', '£')): #Can add more currencies as needed
             currency_values = re.findall(r'[\$€£]?\d[\d,]*\.?\d*', val) #Regex to detect multiple values vs single values
@@ -387,16 +405,30 @@ class FullAuditProgram:
                 return self.normalize_currency_values(val) #Single value - normalize it directly
 
         val = val.replace(' ', '') #Remove all spaces
-        return self.clean_number_string(val) #Clean string using def clean_number_string method
+
+        #Handle comma-separated when currency is not included (ex: .25,1.00,5.00 -> 0.25,1,5)
+        if ',' in val:
+            parts = val.split(',')
+            normalized_parts = [self.clean_number_string(p) for p in parts]
+            val = ','.join(normalized_parts)
+        else:
+            val = self.clean_number_string(val)
+
+        #Capitalize any letters in the final normalized value (ex: 243Ways -> 243WAYS)
+        val = ''.join(char.upper() if char.isalpha() else char for char in val)
+
+        return val
 
     def clean_number_string(self, val):
-        #Handles values without currency symbols such as default lines & bet multipliers
+        #Handles values without currency symbols such as default lines & bet multipliers (or data entries for denoms such as .25, 1.00, 5.00 -> 0.25,1,5)
         try:
+            if val.startswith("."):
+                val = "0" + val
             num = float(val) #Convert to float
             if num.is_integer(): #Checks if float is an integer
                 return str(int(num)) #If integer, return as a string
             else:
-                return str(num) #If not an integer, return float as a string
+                return str(num).rstrip("0").rstrip(".")
         except ValueError:
             return str(val).strip() #If conversion fails (val is not a number), return original value as a stripped string
 
@@ -404,13 +436,15 @@ class FullAuditProgram:
     #Helper method to handle currency symbols (ex: $€£) and commas; can expand currencies as needed
         try:
             val = re.sub(r'[$€£,]', '', val).strip() #Remove the currency symbols/commas using regex
+            if val.startswith("."):
+                val = "0" + val
             num = float(val) #Convert to float
             if num.is_integer(): #Checks if float is an integer
                 return str(int(num)) #If integer, convert to an integer then to a string (removes the decimal point)
             else:
-                return "{:.2f}".format(num) #If not an integer, return as string formatted with two decimal places
+                return str(num).rstrip("0").rstrip(".") #If not an integer, return as string formatted with two decimal places
         except ValueError:
-            return '' #If conversion fails, return empty string
+            return '' #if conversion fails, return empty string
 
     def detect_header_row(self, file_path, header_indicator="Game"):
     #Handles automatically detecting header rows by scanning all rows for Wager Files
@@ -659,6 +693,9 @@ class FullAuditProgram:
                 wagerAudit_ProductionFile['Game'] = wagerAudit_ProductionFile['Game'].apply(self.normalize_name)
                 operatorSheet_file['Game'] = operatorSheet_file['Game'].apply(self.normalize_name)
 
+                #Handle RTP% column for operatorSheet_file specifically
+                percent_column = ['RTP%']
+
                 #Skip Game column and normalize values in the other columns and fill NaN values with 'N/A'
                 for wager_column in wagerAudit_StagingFile.columns:
                     if wager_column != 'Game':
@@ -668,7 +705,7 @@ class FullAuditProgram:
                         wagerAudit_ProductionFile[wager_column] = wagerAudit_ProductionFile[wager_column].fillna('N/A').apply(self.normalize_value)
                 for wager_column in operatorSheet_file.columns:
                     if wager_column != 'Game':
-                        operatorSheet_file[wager_column] = operatorSheet_file[wager_column].fillna('N/A').apply(self.normalize_value)
+                        operatorSheet_file[wager_column] = operatorSheet_file[wager_column].fillna('N/A').apply(lambda x: self.normalize_value(x, is_percent_column=(wager_column in percent_column)))
 
                 #Sorts Game columns alphabetically in all DataFrames
                 wagerAudit_StagingFile = wagerAudit_StagingFile.sort_values(by='Game', ascending=True)
@@ -976,9 +1013,9 @@ class FullAuditProgram:
                     if col not in row3_agileReport_df:
                         raise KeyError(f"{col} not found in 'agileReport_file' matched rows datasets")
 
-                    audit_results_gameVersions[f"{col} (Staging Operator GameList Report): "] = row1_staging_df[col].reset_index(drop=True)
-                    audit_results_gameVersions[f"{col} (Production Operator GameList Report): "] = row2_production_df[col].reset_index(drop=True)
-                    audit_results_gameVersions[f"{col} (Agile PLM Report): "] = row3_agileReport_df[col].reset_index(drop=True)
+                    audit_results_gameVersions[f"{col}\n(Staging Operator GameList Report): "] = row1_staging_df[col].reset_index(drop=True)
+                    audit_results_gameVersions[f"{col}\n(Production Operator GameList Report): "] = row2_production_df[col].reset_index(drop=True)
+                    audit_results_gameVersions[f"{col}\n(Agile PLM Report): "] = row3_agileReport_df[col].reset_index(drop=True)
 
                 #Combine Jurisdiction column to only appear once (pulled from agile plm report column)
                 if 'Jurisdiction' in row3_agileReport_df.columns:
@@ -1002,17 +1039,46 @@ class FullAuditProgram:
 
             #If all files are processed successfully and True, proceed with Excel writing
             if all_valid:
+                #Safety check to ensure file names are not the same so that it does not overwrite sheets accidently
+                sheet_names_wagerAuditGroup = [
+                    Path(self.wagerAudit_Staging_path).stem[:31],
+                    Path(self.wagerAudit_Production_path).stem[:31],
+                    Path(self.operator_wagerSheet_path).stem[:31]
+                ]
+                #Check for duplicates in wagerAuditGroup
+                if len(sheet_names_wagerAuditGroup) != len(set(sheet_names_wagerAuditGroup)):
+                    messagebox.showerror(
+                        "Error Duplicate File Names Detected!",
+                        f'Duplicate file names detected for files: {sheet_names_wagerAuditGroup}.\n'
+                        'Rename files to ensure unique sheet names and re-upload again.'
+                    )
+                    return #Stop execution until files are renamed properly
+
+                #Safety check to ensure file names are not the same for Game/Math Version Audit Files so that it does not overwrite sheets accidently
+                sheet_names_gameVersionAuditGroup = [
+                    Path(self.opGameList_stagingReport_path).stem[:31],
+                    Path(self.opGameList_productionReport_path).stem[:31],
+                    Path(self.agileReport_path).stem[:31]
+                ]
+                #Check for duplicates in gameVersionAuditGroup
+                if len(sheet_names_gameVersionAuditGroup) != len(set(sheet_names_gameVersionAuditGroup)):
+                    messagebox.showerror(
+                        "Error Duplicate File Names Detected!",
+                        f'Duplicate file names detected for files: {sheet_names_gameVersionAuditGroup}.\n'
+                        'Rename files to ensure unique sheet names and re-upload again.'
+                    )
+                    return #Stop execution until files are renamed properly
+
                 try:
                     #Write to excel with formatting
                     with pd.ExcelWriter(file_path, engine='xlsxwriter') as writer:
-                        #Write to Excel with sheet names (based on selected file paths) truncated to 31 characters
-                        wagerAudit_StagingFile.to_excel(writer, sheet_name=Path(self.wagerAudit_Staging_path).stem[:31], index=False) #Staging Wager Audit File raw data on sheet 1
-                        wagerAudit_ProductionFile.to_excel(writer, sheet_name=Path(self.wagerAudit_Production_path).stem[:31], index=False) #Production Wager Audit File raw data on sheet 2
-                        operatorSheet_file.to_excel(writer, sheet_name=Path(self.operator_wagerSheet_path).stem[:31], index=False) #Op Wager Config Sheet raw data on sheet 3
+                        wagerAudit_StagingFile.to_excel(writer, sheet_name=sheet_names_wagerAuditGroup[0], index=False) #Staging Wager Audit File raw data on sheet 1
+                        wagerAudit_ProductionFile.to_excel(writer, sheet_name=sheet_names_wagerAuditGroup[1], index=False) #Production Wager Audit File raw data on sheet 2
+                        operatorSheet_file.to_excel(writer, sheet_name=sheet_names_wagerAuditGroup[2], index=False) #Op Wager Config Sheet raw data on sheet 3
                         audit_results_wagerAudit.to_excel(writer, sheet_name='Wager Audit Results', index=False) #Wager Audit Results with side by side comparison on sheet 4
-                        opGameList_StagingFile.to_excel(writer, sheet_name=Path(self.opGameList_stagingReport_path).stem[:31], index=False) #Staging Op GameList Report raw data on sheet 5
-                        opGameList_ProductionFile.to_excel(writer, sheet_name=Path(self.opGameList_productionReport_path).stem[:31], index=False) #Production Op GameList Report raw data on sheet 6
-                        agileReport_file.to_excel(writer, sheet_name=Path(self.agileReport_path).stem[:31], index=False) #Agile PLM Report raw data on sheet 7
+                        opGameList_StagingFile.to_excel(writer, sheet_name=sheet_names_gameVersionAuditGroup[0], index=False) #Staging Op GameList Report raw data on sheet 5
+                        opGameList_ProductionFile.to_excel(writer, sheet_name=sheet_names_gameVersionAuditGroup[1], index=False) #Production Op GameList Report raw data on sheet 6
+                        agileReport_file.to_excel(writer, sheet_name=sheet_names_gameVersionAuditGroup[2], index=False) #Agile PLM Report raw data on sheet 7
                         audit_results_gameVersions.to_excel(writer, sheet_name='Game&Math Version Audit Results', index=False) #GameVersion Audit Results with side by side comparison on sheet 8
                         combined_missing_games.to_excel(writer, sheet_name='Missing Games', index=False) #Missing games from all files on sheet 9
 
