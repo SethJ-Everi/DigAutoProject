@@ -536,7 +536,7 @@ class GameVersionAuditProgram:
                 allMissing_gameNames_versionAudit = [] #Empty list to collect missing Game Names
 
                 for gameVersions in all_gameNames_union:
-                    missingVersions_in =[
+                    missingVersions_in = [
                         file_labels[i] for i, gameVersions_sets in enumerate(allFiles_set)
                         if gameVersions not in gameVersions_sets
                     ]
@@ -605,9 +605,9 @@ class GameVersionAuditProgram:
                     if col not in row3_agileReport_df:
                         raise KeyError(f"{col} not found in 'agileReport_file_aligned' matched rows datasets")
                     
-                    audit_results_versions[f"{col} (Staging Operator GameList Report):"] = row1_staging_df[col].reset_index(drop=True)
-                    audit_results_versions[f"{col} (Production Operator GameList Report):"] = row2_production_df[col].reset_index(drop=True)
-                    audit_results_versions[f"{col} (Agile PLM Report):"] = row3_agileReport_df[col].reset_index(drop=True)
+                    audit_results_versions[f"{col}\n(Staging Operator GameList Report):"] = row1_staging_df[col].reset_index(drop=True)
+                    audit_results_versions[f"{col}\n(Production Operator GameList Report):"] = row2_production_df[col].reset_index(drop=True)
+                    audit_results_versions[f"{col}\n(Agile PLM Report):"] = row3_agileReport_df[col].reset_index(drop=True)
 
                 #Jurisdiction to only appear once pulled from agile plm report column
                 if 'Jurisdiction' in row3_agileReport_df.columns:
@@ -628,16 +628,31 @@ class GameVersionAuditProgram:
                 all_valid = False
                 messagebox.showerror("Error!", f"An error has occured for the Staging Operator GameList Report, Production Operator GameList Report, and Agile PLM Report: {str(e)}")
                 return False
-            
+
             #If all files are processed successfully and True, proceed with Excel writing
             if all_valid:
+                #Safety check to ensure file names are not the same for Game/Math Version Audit Files so that it does not overwrite sheets accidently
+                sheet_names_gameVersionAuditGroup = [
+                    Path(self.opGameList_stagingReport_path).stem[:31],
+                    Path(self.opGameList_productionReport_path).stem[:31],
+                    Path(self.agileReport_path).stem[:31]
+                ]
+                #Check for duplicates in gameVersionAuditGroup
+                if len(sheet_names_gameVersionAuditGroup) != len(set(sheet_names_gameVersionAuditGroup)):
+                    messagebox.showerror(
+                        "Error Duplicate File Names Detected!",
+                        f'Duplicate file names detected for files: {sheet_names_gameVersionAuditGroup}.\n'
+                        'Rename files to ensure unique sheet names and re-upload again.'
+                    )
+                    return #Stop execution until files are renamed properly
+
                 try:
                     #Write to excel with formatting
                     with pd.ExcelWriter(file_path, engine='xlsxwriter') as writer:
-                        #Write to Excel with sheet names (based on selected file paths) truncated to 31 characters
-                        opGameList_StagingFile.to_excel(writer, sheet_name=Path(self.opGameList_stagingReport_path).stem[:31], index=False) #Staging Op GameList Report raw data on sheet 1
-                        opGameList_ProductionFile.to_excel(writer, sheet_name=Path(self.opGameList_productionReport_path).stem[:31], index=False) #Production Op GameList Report raw data on sheet 2
-                        agileReport_file.to_excel(writer, sheet_name=Path(self.agileReport_path).stem[:31], index=False) #Agile PLM Report raw data on sheet 3
+                        #Write to Excel with sheet names
+                        opGameList_StagingFile.to_excel(writer, sheet_name=sheet_names_gameVersionAuditGroup[0], index=False) #Staging Op GameList Report raw data on sheet 1
+                        opGameList_ProductionFile.to_excel(writer, sheet_name=sheet_names_gameVersionAuditGroup[1], index=False) #Production Op GameList Report raw data on sheet 2
+                        agileReport_file.to_excel(writer, sheet_name=sheet_names_gameVersionAuditGroup[2], index=False) #Agile PLM Report raw data on sheet 3
                         audit_results_versions.to_excel(writer, sheet_name='GameVersion Audit Results', index=False) #GameVersion Audit Results with side by side comparison on sheet 4
                         missing_games_versions.to_excel(writer, sheet_name='Missing Games', index=False) #Missing games on sheet 5
 
