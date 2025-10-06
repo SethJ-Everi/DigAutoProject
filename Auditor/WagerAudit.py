@@ -273,16 +273,19 @@ class WagerAuditProgram:
             messagebox.showinfo("Canceled!",
                                 "Clear canceled.")
 
-    def normalize_name(self, name):
-        #Standardize game name column; convert to lowercase, removes all spaces, removes apostrophes
-        if isinstance(name, str):
-            name = unicodedata.normalize('NFKD', name) #Normalize any smart quotes or accents (Ex: Jack O'Lantern Jackpots)
-            name = re.sub(r'(?<!^)(?=[A-Z][a-z])', ' ', name) #Split only before capital letters followed by lowercase (to avoid splitting acronyms)
-            name = name.replace('_', ' ') #Remove underscores and adds a space (specific for postfix games)
-            name = re.sub(r"[’';:]", '', name) #Remove straight and curly apostrophes using regex
-            name = re.sub(r'\s+', '', name).strip() #Replace multiple spaces with no space, then strip leading/trailing
-            return name.lower() #Convert to lowercase
-        return name
+    def normalize_name(self, name): #Standardize game name column
+        #Convert NaN or missing values to empty string
+        if pd.isna(name) or str(name).strip() == '':
+            return ''
+        #Ensures all values are strings
+        if not isinstance(name, str):
+            name = str(name)
+        name = unicodedata.normalize('NFKD', name) #Normalize any smart quotes or accents (Ex: Jack O'Lantern Jackpots)
+        name = re.sub(r'(?<!^)(?=[A-Z][a-z])', ' ', name) #Split only before capital letters followed by lowercase (to avoid splitting acronyms)
+        name = name.replace('_', ' ') #Remove underscores and adds a space (specific for postfix games)
+        name = re.sub(r"[’';:]", '', name) #Remove straight and curly apostrophes using regex
+        name = re.sub(r'\s+', '', name).strip() #Replace multiple spaces with no space, then strip leading/trailing
+        return name.lower() #Convert to lowercase
 
     def normalize_value(self, val, is_percent_column=False):
         #Standardize values to handle percentages, currencies, and NaN values
@@ -311,8 +314,13 @@ class WagerAuditProgram:
             try:
                 numeric_val = float(val)
                 if 0 < numeric_val < 1: #Only decimals between 0 and 1
-                    percent_val = int(math.ceil(numeric_val * 100))
-                    return f"{percent_val}%"
+                    percent_val = int(round(numeric_val * 100))
+                elif 1 <= numeric_val <= 100:
+                    percent_val = int(round(numeric_val))
+                else:
+                    return ''
+                val = f"{percent_val}%"
+                return val
             except ValueError:
                 pass #Not a numeric value continue
 
@@ -337,8 +345,9 @@ class WagerAuditProgram:
         else:
             val = self.clean_number_string(val)
 
-        #Capitalize any letters in the final normalized value (ex: 243Ways -> 243WAYS)
-        val = ''.join(char.upper() if char.isalpha() else char for char in val)
+        val = val.replace(' ', '')
+        if any(char.isalpha() for char in val): #Capitalize any letters in the final normalized value (ex: 243Ways -> 243WAYS)
+            val = ''.join(char.upper() if char.isalpha() else char for char in val)
 
         return val
 
@@ -355,7 +364,7 @@ class WagerAuditProgram:
         except ValueError:
             return str(val).strip() #If conversion fails (val is not a number), return original value as a stripped string
 
-    def normalize_currency_values (self, val):
+    def normalize_currency_values(self, val):
     #Helper method to handle currency symbols (ex: $€£) and commas; can expand currencies as needed
         try:
             val = re.sub(r'[$€£,]', '', val).strip() #Remove the currency symbols/commas using regex
@@ -523,19 +532,21 @@ class WagerAuditProgram:
                 wagerAudit_ProductionFile['Game'] = wagerAudit_ProductionFile['Game'].apply(self.normalize_name)
                 operatorSheet_file['Game'] = operatorSheet_file['Game'].apply(self.normalize_name)
 
+                operatorSheet_file = operatorSheet_file[operatorSheet_file['Game'] != '']
+
                 #Handle RTP% column for operatorSheet_file specifically
                 percent_column = ['RTP%']
 
                 #Skip Game column and normalize values in the other columns and fill NaN values with 'N/A'
                 for wager_column in wagerAudit_StagingFile.columns:
                     if wager_column != 'Game':
-                        wagerAudit_StagingFile[wager_column] = wagerAudit_StagingFile[wager_column].fillna('N/A').apply(self.normalize_value)
+                        wagerAudit_StagingFile[wager_column] = wagerAudit_StagingFile[wager_column].replace('', pd.NA).fillna('N/A').apply(self.normalize_value)
                 for wager_column in wagerAudit_ProductionFile.columns:
                     if wager_column != 'Game':
-                        wagerAudit_ProductionFile[wager_column] = wagerAudit_ProductionFile[wager_column].fillna('N/A').apply(self.normalize_value)
+                        wagerAudit_ProductionFile[wager_column] = wagerAudit_ProductionFile[wager_column].replace('', pd.NA).fillna('N/A').apply(self.normalize_value)
                 for wager_column in operatorSheet_file.columns:
                     if wager_column != 'Game':
-                        operatorSheet_file[wager_column] = operatorSheet_file[wager_column].fillna('N/A').apply(lambda x: self.normalize_value(x, is_percent_column=(wager_column in percent_column)))
+                        operatorSheet_file[wager_column] = operatorSheet_file[wager_column].replace('', pd.NA).fillna('N/A').apply(lambda x: self.normalize_value(x, is_percent_column=(wager_column in percent_column)))
 
                 #Sorts Game columns alphabetically in all DataFrames
                 wagerAudit_StagingFile = wagerAudit_StagingFile.sort_values(by='Game', ascending=True)
@@ -600,11 +611,11 @@ class WagerAuditProgram:
                         raise KeyError(f"'{wager_column}' not found in 'wagerAudit_ProductionFile_matchedGameNames' matched rows dataset.")
                     if wager_column not in operatorSheet_file_matchedGameNames.columns:
                         raise KeyError(f"'{wager_column}' not found in 'operatorSheet_file_matchedGameNames' matched rows dataset.")
-                    
+
                     if wager_column in wagerAudit_StagingFile_matchedGameNames.columns and wager_column in wagerAudit_ProductionFile_matchedGameNames.columns and wager_column in operatorSheet_file_matchedGameNames.columns:
                         wagerAudit_StagingFile_matchedGameNames[wager_column] = wagerAudit_StagingFile_matchedGameNames[wager_column].apply(self.normalize_value).reset_index(drop=True)
                         wagerAudit_ProductionFile_matchedGameNames[wager_column] = wagerAudit_ProductionFile_matchedGameNames[wager_column].apply(self.normalize_value).reset_index(drop=True)
-                        operatorSheet_file_matchedGameNames[wager_column] = operatorSheet_file_matchedGameNames[wager_column].apply(self.normalize_value).reset_index(drop=True)
+                        operatorSheet_file_matchedGameNames[wager_column] = operatorSheet_file_matchedGameNames[wager_column].apply(lambda x: self.normalize_value(x, is_percent_column=(wager_column in percent_column))).reset_index(drop=True)
 
                         #Side by side columns from all sheets to the DataFrame
                         audit_results_wagers[f"{wager_column}\n(Wager Staging Audit File): "] = wagerAudit_StagingFile_matchedGameNames[wager_column]
@@ -717,10 +728,6 @@ class WagerAuditProgram:
                                         val2 = df.iat[row - 1, col_idx + 1] if remaining_columns > 1 else None
                                         val3 = df.iat[row - 1, col_idx + 2] if remaining_columns > 2 else None
 
-                                        val1 = self.normalize_value(val1) if isinstance(val1, (int, float, str)) else val1
-                                        val2 = self.normalize_value(val2) if isinstance(val2, (int, float, str)) else val2
-                                        val3 = self.normalize_value(val3) if isinstance(val3, (int, float, str)) else val3
-
                                         #Replace NaN or None with empty string (if necessary)
                                         columns_in_groups = ["" if pd.isna(val1) or val1 is None else val1]
                                         if val2 is not None:
@@ -777,4 +784,3 @@ class WagerAuditProgram:
                 return True
             else:
                 return False
-            
