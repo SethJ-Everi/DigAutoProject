@@ -695,7 +695,7 @@ class WagerAuditProgram:
                                 worksheet.set_column(col_num, col_num, max_len + 2) #Add padding
 
                             worksheet.autofilter(0, 0, 0, len(df.columns) - 1) #Add filter to header row
-                            worksheet.freeze_panes(1, 0) #Freeze top row to keep headers visible when scrolling
+                            worksheet.freeze_panes(1, 1) #Freeze top row and game name column to keep headers/game names visible when scrolling
 
                             #Write all data cells w/border formatting
                             for row in range(1, len(df) + 1):
@@ -784,3 +784,4 @@ class WagerAuditProgram:
                 return True
             else:
                 return False
+
