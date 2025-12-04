@@ -514,7 +514,13 @@ class JurisdictionGameVersionAuditProgram:
                                 worksheet.set_column(col_num, col_num, max_len + 2) #Add padding
 
                             worksheet.autofilter(0, 0, 0, len(df.columns) - 1) #Add filter to header row for user to be able to filter results as needed
-                            worksheet.freeze_panes(1, 0) #Freeze header top row to keep headers visible when scrolling
+
+                            if sheet_name == Path(self.supportPanel_report_path).stem[:31]:
+                                worksheet.freeze_panes(1, 1) #Only freeze top row and game name column for support panel sheet
+                            elif sheet_name == Path(self.agileReport_path).stem[:31] or sheet_name == 'Game Version Audit Results':
+                                worksheet.freeze_panes(1, 2) #Only freeze top row and first two columns for Agile PLM Report and Results sheet
+                            else: #Only freeze top row for Missing Games sheet
+                                worksheet.freeze_panes(1, 0)
 
                             #Write all data cells w/border formatting
                             for row in range(1, len(df) + 1):
@@ -559,3 +565,4 @@ class JurisdictionGameVersionAuditProgram:
                 return True
             else:
                 return False
+
