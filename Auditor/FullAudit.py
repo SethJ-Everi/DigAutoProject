@@ -1129,7 +1129,27 @@ class FullAuditProgram:
                                 worksheet.set_column(col_num, col_num, max_len + 2) #Add padding
 
                             worksheet.autofilter(0, 0, 0, len(df.columns) - 1) #Add filter to header row
-                            worksheet.freeze_panes(1, 0) #Freeze top row to keep headers visible when scrolling
+
+                            #Only freeze top row and game name column for wager sheets
+                            if sheet_name in [
+                                Path(self.wagerAudit_Staging_path).stem[:31],
+                                Path(self.wagerAudit_Production_path).stem[:31],
+                                Path(self.operator_wagerSheet_path).stem[:31],
+                                "Wager Audit Results"
+                            ]:
+                                worksheet.freeze_panes(1, 1)
+
+                            #Only freeze top row and first two columns in game version sheets
+                            elif sheet_name in [
+                                Path(self.opGameList_stagingReport_path).stem[:31],
+                                Path(self.opGameList_productionReport_path).stem[:31],
+                                Path(self.agileReport_path).stem[:31],
+                                "Game&Math Version Audit Results"
+                            ]:
+                                worksheet.freeze_panes(1, 2)
+
+                            else: #Only freeze top row for Missing Games sheet
+                                worksheet.freeze_panes(1, 0)
 
                             #Write all data cells w/border formatting
                             for row in range(1, len(df) + 1):
@@ -1220,3 +1240,4 @@ class FullAuditProgram:
                 return True
             else:
                 return False
+
