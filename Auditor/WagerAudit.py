@@ -300,7 +300,7 @@ class WagerAuditProgram:
                 if '.' in val:
                     number_part = val.replace('%', '').strip() #Strip percent symbol
                     decimal_val = float(number_part) / 100 #Decimal percentage, divide by 100
-                    rounded_val = math.ceil(decimal_val * 100) / 100 #Rounds up to the next decimal place (ex: 0.9595 to 0.96); rounding can be removed if op wager sheets have exact RTPs; will highlight red if not exact
+                    rounded_val = math.floor(decimal_val * 100 + 0.5) / 100 #If RTP is above 0.5% round up; if below 0.5% round down (ex: 90.50% = 91%; 90.40% = 90%)
                     percent_val = int(rounded_val * 100) #Convert decimnal back to whole percent
                     return f"{percent_val}%" #Add back %
                 else:
@@ -314,9 +314,9 @@ class WagerAuditProgram:
             try:
                 numeric_val = float(val)
                 if 0 < numeric_val < 1: #Only decimals between 0 and 1
-                    percent_val = int(round(numeric_val * 100))
+                    percent_val = int(math.floor(numeric_val * 100 + 0.5)) #If RTP is above 0.5% round up; if below 0.5% round down (ex: 90.50% = 91%; 90.40% = 90%)
                 elif 1 <= numeric_val <= 100:
-                    percent_val = int(round(numeric_val))
+                    percent_val = int(math.floor(numeric_val + 0.5))
                 else:
                     return ''
                 val = f"{percent_val}%"
@@ -788,5 +788,6 @@ class WagerAuditProgram:
                 return True
             else:
                 return False
+
 
 
