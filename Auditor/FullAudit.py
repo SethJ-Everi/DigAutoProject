@@ -548,50 +548,91 @@ class FullAuditProgram:
 
     def matching_GameNames(self, opGameList_StagingReport_gameNames, opGameList_ProductionReport_gameNames, agileReport_gameNames=None, threshold=85):
         #Handles Game Name exact + partial matches for all three files
-        gameName_matches = []
-        gameName_matches_opGameList_Production = set()
-        used_agileReport = set() if agileReport_gameNames else None
+        gameName_matches = [] #Store final game name matches
+        gameName_matches_opGameList_Production = set() #Tracks which game name matches have already been matched in the opGameList Production file
+        used_agileReport = set() if agileReport_gameNames else None #Tracks used titles in Agile PLM Report file
 
+        #Local forced matches mapping
+        #Keys: (Staging file, Production file), Values: Agile PLM Report to force
+        #Entered lowercase & without spaces since values are normalized before hitting this function
+        forced_gameName_matches = {
+            ("mgmlions", "mgmlions"): "detroitlionsdeluxe",
+            ("borgata", "borgata"): "borgata777respin",
+            ("mgmjets", "mgmjets"): "newyorkjetsdeluxe",
+            ("mgmsteelers", "mgmsteelers"): "pittsburghsteelersdeluxe",
+            ("nflphiladelphiaeagles", "nflphiladelphiaeagles"): "philadelphiaeaglesjackpots",
+            ("cashmachinematchthree", "cashmachinematchthree"): "cashmachinematch3",
+            ("hoopdynastymatchthree", "hoopdynastymatchthree"): "hoopdynastymatch3",
+            ("doubleblackdiamondmatchthree", "doubleblackdiamondmatchthree"): "doubleblackdiamondmatch3"
+        }
+
+        #Loop through game names in opGameList Staging Report
         for opGameList_StagingReport in opGameList_StagingReport_gameNames:
             best_score2 = 0
             best_match2 = None
 
+            #Compare Staging game names against all Production game names
             for opGameList_ProductionReport in opGameList_ProductionReport_gameNames:
+                #Skip if Production game names already matched
                 if opGameList_ProductionReport in gameName_matches_opGameList_Production:
                     continue
 
+                #Similarity score (0-100)
                 score2 = SequenceMatcher(None, opGameList_StagingReport, opGameList_ProductionReport).ratio() * 100
+                #Boost score if partial match is detected
                 if self.partialMatching_GameNames(opGameList_StagingReport, opGameList_ProductionReport):
                     score2 = max(score2, threshold + 1)
 
+                #Keep best-scoring game name matches from Production file
                 if score2 > best_score2:
                     best_score2 = score2
                     best_match2 = opGameList_ProductionReport
 
+            #Lock in Production game name match if threshold is met
             if best_score2 >= threshold and best_match2:
                 gameName_matches_opGameList_Production.add(best_match2)
 
+                #Check for forced match for Agile PLM Report
+                forced_gameNameMatches_agileReport = None
+                if agileReport_gameNames:
+                    forced_gameNameMatches_agileReport = forced_gameName_matches.get((opGameList_StagingReport, best_match2))
+
+                #Add tuple with Agile PLM Report = Staging report to ensure display game name matches Staging/Production
+                if forced_gameNameMatches_agileReport:
+                    used_agileReport.add(forced_gameNameMatches_agileReport)
+                    gameName_matches.append(
+                        (opGameList_StagingReport, best_match2, forced_gameNameMatches_agileReport, best_score2, threshold + 1) #Agile PLM Report game name renamed to Staging game name
+                    )
+                    continue #Skip to next if statement
+
+                #If Agile PLM Report game name already exists, try to match too
                 if agileReport_gameNames:
                     best_score3 = 0
                     best_match3 = None
                     for agileReport in agileReport_gameNames:
-                        if agileReport in used_agileReport:
+                        if agileReport in used_agileReport: #Skip game names from Agile PLM Report already used
                             continue
 
+                        #Similarity score (0-100)
                         score3 = SequenceMatcher(None, opGameList_StagingReport, agileReport).ratio() * 100
+                        #Boost score if partial match is detected
                         if self.partialMatching_GameNames(opGameList_StagingReport, agileReport):
                             score3 = max(score3, threshold + 1)
 
+                        #Keep best-scoring game name matches from Agile PLM Report
                         if score3 > best_score3:
                             best_score3 = score3
                             best_match3 = agileReport
 
+                    #Save triple match if Agile PLM Report file passes threshold
                     if best_score3 >= threshold and best_match3:
                         used_agileReport.add(best_match3)
                         gameName_matches.append((opGameList_StagingReport, best_match2, best_match3, best_score2, best_score3))
                 else:
+                    #Save pair match (for Staging and Production files only)
                     gameName_matches.append((opGameList_StagingReport, best_match2, best_score2))
 
+        #Return all collected game name matches
         return gameName_matches
 
     def compare_files(self, file_path):
@@ -1240,5 +1281,6 @@ class FullAuditProgram:
                 return True
             else:
                 return False
+
 
 
