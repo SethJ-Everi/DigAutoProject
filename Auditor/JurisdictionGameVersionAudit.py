@@ -27,15 +27,17 @@ class JurisdictionGameVersionAuditProgram:
 
     def close_window(self): #Function for cancel confirmation
         confirm = messagebox.askyesno(
-            "Exit Jurisdiction Game Version Audit",
-            "Are you sure you want to close the Jurisdiction Game Version Audit?"
+            "Exit Jurisdiction Game Version Audit?",
+            "Are you sure you want to exit the Jurisdiction Game Version Audit Tool?",
+            parent=self.window
         )
         if confirm:
             self.window.destroy() #To close this window only
         else:
             messagebox.showinfo(
                 "Canceled!",
-                "Close canceled."
+                "Exit canceled.",
+                parent=self.window
             )
         
     def adjust_window(self):
@@ -92,15 +94,22 @@ class JurisdictionGameVersionAuditProgram:
             "font": ("TkDefaultFont", 10)
         }
 
+        #Button style dictionary for exit button
+        exit_button_style = {
+            "borderwidth": 1,
+            "highlightthickness": 0,
+            "font": ("TkDefaultFont", 10, "bold")
+        }
+
         #Support Panel File label and upload button
-        self.supportPanel_report_label = tk.Label(center_group, text="Select Support Panel File", **label_style)
+        self.supportPanel_report_label = tk.Label(center_group, text="Support Panel File Uploaded: \nNONE", **label_style)
         self.supportPanel_report_label.pack(pady=(0, 5))
         self.supportPanel_report_button = tk.Button(center_group, text="Upload Support Panel File", width=30, command=self.upload_supportPanel_report, **button_style)
         self.supportPanel_report_button.pack(pady=(0, 10))
         self.button_hover_effect(self.supportPanel_report_button)
 
         #Agile PLM Report label and upload button
-        self.agileReport_label = tk.Label(center_group, text="Select Agile PLM Report", **label_style)
+        self.agileReport_label = tk.Label(center_group, text="Agile PLM Report Uploaded: \nNONE", **label_style)
         self.agileReport_label.pack(pady=(0, 5))
         self.agileReport_button = tk.Button(center_group, text="Upload Agile PLM Report", width=30, command=self.upload_agileReport, **button_style)
         self.agileReport_button.pack(pady=(0, 10))
@@ -119,6 +128,11 @@ class JurisdictionGameVersionAuditProgram:
         self.clear_button = tk.Button(action_frame, text="CLEAR FILES", font=("TkDefaultFont", 12, "bold"), command=self.clear_button, fg='white', bg="#6e6e6e", borderwidth=1)
         self.clear_button.pack(side="left", padx=10)
         self.button_hover_effect(self.clear_button)
+
+        #Exit button
+        self.exit_button = tk.Button(content_frame, text="EXIT", width=20, command=self.close_window, bg="#FF6F6F", fg='white', **exit_button_style)
+        self.exit_button.pack(padx=10)
+        self.button_hover_effect(self.exit_button, normal_bg="#FF6F6F")
 
         #Center action_frame for submit/clear buttons
         action_frame.pack_configure(anchor="center")
@@ -162,8 +176,8 @@ class JurisdictionGameVersionAuditProgram:
         if self.supportPanel_report_path: #Checks if a file is selected
             self.supportPanel_report_label.config(text=f"Support Panel File Uploaded: \n{self.supportPanel_report_path.split('/')[-1]}", fg='#90EE90') #Displays file name once selected/updates label from red to green
         else:
-            messagebox.showwarning("Missing File!", "Select Support Panel File to proceed.") #Show warning if no support panel file is selected 
-            self.supportPanel_report_label.config(text="Select Support Panel File", fg='#FF6F6F') #Update label to indicate no file is selected/turn label text red
+            messagebox.showwarning("File Upload Canceled!", "File upload canceled. Select Support Panel File to upload.") #Show warning if no support panel file is selected 
+            self.supportPanel_report_label.config(text="Support Panel File Uploaded: \nNONE", fg='#FF6F6F') #Update label to indicate no file is selected/turn label text red
             self.supportPanel_report_path = "" if not self.supportPanel_report_path else self.supportPanel_report_path
 
         self.enable_submit_button() #Enables submit button after selection
@@ -177,8 +191,8 @@ class JurisdictionGameVersionAuditProgram:
         if self.agileReport_path: #Checks if a file is selected
             self.agileReport_label.config(text=f"Agile PLM Report Uploaded: \n{self.agileReport_path.split('/')[-1]}", fg='#90EE90') #Displays file name once selected/updates label from red to green
         else:
-            messagebox.showwarning("Missing File!", "Select Agile PLM Report to proceed.") #Show warning if no Agile PLM Report is selected
-            self.agileReport_label.config(text="Select Agile PLM Report", fg='#FF6F6F') #Update label to indicate no file is selected/turn label text red
+            messagebox.showwarning("File Upload Canceled!", "File upload canceled. Select Agile PLM Report to upload.") #Show warning if no Agile PLM Report is selected
+            self.agileReport_label.config(text="Agile PLM Report Uploaded: \nNONE", fg='#FF6F6F') #Update label to indicate no file is selected/turn label text red
             self.agileReport_path = "" if not self.agileReport_path else self.agileReport_path
         self.enable_submit_button() #Enables submit button after selection
 
@@ -194,17 +208,17 @@ class JurisdictionGameVersionAuditProgram:
             parent=self.window,
             defaultextension=".xlsx",
             filetypes=[("Excel files", "*.xlsx"), ("All files", "*.*")], #File types filter
-            title="File Save Location" #Dialog title
+            title="File Save Location:" #Dialog title
         )
 
         if not file_path:
-            messagebox.showinfo("Missing File Path!",
+            messagebox.showinfo("No File Path Selected!",
                                 "Select file path to save Jurisdiction Game Version Audit Results and try again.") #Show cancelled message if no save file path was selected
             self.enable_submit_button() #Enables submit button
             return
 
         #Message box to confirm user selected files for submission and allows user to hit cancel if needed to re-upload files
-        if messagebox.askyesno("Confirm Submit",
+        if messagebox.askyesno("Confirm Submit?",
                                "Are you sure you want to submit files for comparison?"):
             try:
                 result = self.compare_files(file_path) #Call the function to compare files and save
@@ -225,7 +239,7 @@ class JurisdictionGameVersionAuditProgram:
 
     def clear_button(self):
         answer = messagebox.askyesno(
-            "Confirm Clear",
+            "Confirm Clear?",
             "Are you sure you want to clear all files selected?"
         )
         if answer:
@@ -234,18 +248,18 @@ class JurisdictionGameVersionAuditProgram:
             self.agileReport_path = ""
 
             #Clear all labels and display red text
-            self.supportPanel_report_label.config(text="Select Support Panel File", fg="#FF6F6F")
-            self.agileReport_label.config(text="Select Agile PLM Report", fg="#FF6F6F")
+            self.supportPanel_report_label.config(text="Support Panel File Uploaded: \nNONE", fg="#FF6F6F")
+            self.agileReport_label.config(text="Agile PLM Report Uploaded: \nNONE", fg="#FF6F6F")
 
             #Disable the submit button and turn red
             self.submit_button.config(state=tk.DISABLED, bg="#FF6F6F")
 
             #Show message box to user stating cleared files
-            messagebox.showinfo("Cleared",
-                                "All Files cleared. Select new files to upload.")
+            messagebox.showinfo("All Files Cleared!",
+                                "Cleared all uploaded files. Select new files to upload.")
         else: #Show message box to user the clear was canceled
             messagebox.showinfo("Canceled!",
-                                "Clear canceled and files remain as is.")
+                                "Clear canceled and uploaded files remain as is.")
 
     def normalize_name(self, name):
         #Standardize game name column; convert to lowercase, removes all spaces, removes apostrophes
@@ -261,7 +275,7 @@ class JurisdictionGameVersionAuditProgram:
     def detect_header_row(self, file_path, header_version_indicator=["game_name", "GameName"]):
         #Handles automatically detecting header rows by scanning all rows and searching for header indicator
         if not file_path.endswith('.xlsx'):
-            raise ValueError("Unsupported file format. Only Excel (.xlsx) files are supported.") #Raise error for incorrect file formats
+            raise ValueError("Unsupported file format. Only Excel (.xlsx) file types are supported.") #Raise error for incorrect file formats
         
         version_data = pd.read_excel(file_path, header=None, engine='openpyxl') #Checks all rows for header
 
@@ -281,7 +295,7 @@ class JurisdictionGameVersionAuditProgram:
                 return idx
 
         print("No matching header row found.")
-        return None    
+        return None
 
     def partialMatching_GameNames(self, supportPanel_report, agileReport, min_length_ratio=0.4):
         shorter, longer = sorted([supportPanel_report, agileReport], key=len) #Sort game names by length so 'shorter' is always the smaller one
@@ -337,7 +351,7 @@ class JurisdictionGameVersionAuditProgram:
 
                 #Throws an error if no valid header rows are found in the files
                 if supportPanel_report_header_row is None or agilereport_header_row is None:
-                    messagebox.showerror("Error!", "Could not find valid header rows in all selected files.")
+                    messagebox.showerror("Missing Header Rows!", "Could not find valid header rows for all selected files. Confirm proper files were uploaded and try again.")
                     return False
             
                 #Read full files, skipping the detected header rows
@@ -468,7 +482,7 @@ class JurisdictionGameVersionAuditProgram:
                 #Check for duplicates in gameVersionAuditGroup
                 if len(sheet_names_jurisGameVersionAuditGroup) != len(set(sheet_names_jurisGameVersionAuditGroup)):
                     messagebox.showerror(
-                        "Error Duplicate File Names Detected!",
+                        "Duplicate File Names Detected!",
                         f'Duplicate file names detected for files: {sheet_names_jurisGameVersionAuditGroup}.\n'
                         'Rename files to ensure unique sheet names and re-upload again.'
                     )
@@ -565,4 +579,3 @@ class JurisdictionGameVersionAuditProgram:
                 return True
             else:
                 return False
-
