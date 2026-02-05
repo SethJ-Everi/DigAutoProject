@@ -38,16 +38,25 @@ class AuditToolSelector:
 
     def close_window(self): #Function for cancel confirmation
         confirm = messagebox.askyesno(
-            "Exit Audit Comparison Tool",
-            "Are you sure you want to close the Audit Comparison Tool?"
+            "Exit Audit Comparison Tool?",
+            "Are you sure you want to close the Audit Comparison Tool?",
+            parent=self.master
         )
         if confirm:
             self.master.destroy() #To close this window only
         else:
             messagebox.showinfo(
                 "Canceled!",
-                "Close canceled."
+                "Close canceled.",
+                parent=self.master
             )
+
+    def open_tool(self, tool_class):
+        self.master.withdraw() #Hides main window while tool runs
+        tool_window = tool_class(self.master) #Launch other program
+        tool_window.window.wait_window() #Waits until the tool closes
+        self.master.deiconify() #Shows main window again
+        self.master.lift() #Brings it to the front
 
     def main_widgets(self):
         #Main content frame for all buttons/labels
@@ -82,22 +91,22 @@ class AuditToolSelector:
         }
 
         #Wager and Game Version Audit button
-        self.fullAudit_button = tk.Button(group_container, text="Wager & Game/Math Version Audit", width=35, command=lambda: FullAuditProgram(master=self.master), **button_style)
+        self.fullAudit_button = tk.Button(group_container, text="Wager & Game/Math Version Audit", width=35, command=lambda: self.open_tool(FullAuditProgram), **button_style)
         self.fullAudit_button.pack(pady=(10))
         self.button_hover_effect(self.fullAudit_button)
 
         #Wager Audit button
-        self.wagerAudit_button = tk.Button(group_container, text="Wager Audit", width=35, command=lambda: WagerAuditProgram(master=self.master), **button_style)
+        self.wagerAudit_button = tk.Button(group_container, text="Wager Audit", width=35, command=lambda: self.open_tool(WagerAuditProgram), **button_style)
         self.wagerAudit_button.pack(pady=(10))
         self.button_hover_effect(self.wagerAudit_button)
 
         #Jurisdiction Game Version Audit button
-        self.jurisdictionGameVersionAudit_button = tk.Button(group_container, text="Jurisdiction Game Version Audit", width=35, command=lambda: JurisdictionGameVersionAuditProgram(master=self.master), **button_style)
+        self.jurisdictionGameVersionAudit_button = tk.Button(group_container, text="Jurisdiction Game Version Audit", width=35, command=lambda: self.open_tool(JurisdictionGameVersionAuditProgram), **button_style)
         self.jurisdictionGameVersionAudit_button.pack(pady=(10))
         self.button_hover_effect(self.jurisdictionGameVersionAudit_button)
 
         #Game Version Audit button
-        self.gameVersionAudit_button = tk.Button(group_container, text="Game Version Audit", width=35, command=lambda: GameVersionAuditProgram(master=self.master), **button_style)
+        self.gameVersionAudit_button = tk.Button(group_container, text="Game Version Audit", width=35, command=lambda: self.open_tool(GameVersionAuditProgram), **button_style)
         self.gameVersionAudit_button.pack(pady=(10))
         self.button_hover_effect(self.gameVersionAudit_button)
 
