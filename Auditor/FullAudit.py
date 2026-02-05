@@ -35,15 +35,17 @@ class FullAuditProgram:
 
     def close_window(self): #Function for cancel confirmation
         confirm = messagebox.askyesno(
-            "Exit Wager & Game/Math Version Audit",
-            "Are you sure you want to close the Wager & Game/Math Version Audit?"
+            "Exit Wager & Game/Math Version Audit?",
+            "Are you sure you want to close the Wager & Game/Math Version Audit?",
+            parent=self.window
         )
         if confirm:
             self.window.destroy() #To close this window only
         else:
             messagebox.showinfo(
                 "Canceled!",
-                "Close canceled."
+                "Exit canceled.",
+                parent=self.window
             )
 
     def adjust_window(self):
@@ -104,43 +106,50 @@ class FullAuditProgram:
             "font": ("TkDefaultFont", 10)
         }
 
+        #Button style dictionary for exit button
+        exit_button_style = {
+            "borderwidth": 1,
+            "highlightthickness": 0,
+            "font": ("TkDefaultFont", 10, "bold")
+        }
+
         #Staging Wager Audit label and upload button
-        self.wagerAudit_Staging_label = tk.Label(left_group, text="Select Staging Wager Audit File", **label_style)
+        self.wagerAudit_Staging_label = tk.Label(left_group, text="Staging Wager Audit File Uploaded: \nNONE", **label_style)
         self.wagerAudit_Staging_label.pack(pady=(0, 5))
         self.wagerAudit_Staging_button = tk.Button(left_group, text="Upload Staging Wager Audit File", width=38, command=self.upload_wagerAudit_Staging, **button_style)
         self.wagerAudit_Staging_button.pack(pady=(0, 10))
         self.button_hover_effect(self.wagerAudit_Staging_button)
 
         #Production Wager Audit label and upload button
-        self.wagerAudit_Production_label = tk.Label(left_group, text="Select Production Wager Audit File", **label_style)
+        self.wagerAudit_Production_label = tk.Label(left_group, text="Production Wager Audit File Uploaded: \nNONE", **label_style)
         self.wagerAudit_Production_label.pack(pady=(10, 5))
         self.wagerAudit_Production_button = tk.Button(left_group, text="Upload Production Wager Audit File", width=38, command=self.upload_wagerAudit_Production, **button_style)
         self.wagerAudit_Production_button.pack(pady=(0, 10))
         self.button_hover_effect(self.wagerAudit_Production_button)
 
         #Operator Wager Config Sheet label and upload button
-        self.operator_wagerSheet_label = tk.Label(left_group, text="Select Operator Wager Configuration Sheet", **label_style)
+        self.operator_wagerSheet_label = tk.Label(left_group, text="Operator Wager Configuration Sheet Uploaded: \nNONE", **label_style)
         self.operator_wagerSheet_label.pack(pady=(10, 5))
         self.operator_wagerSheet_button = tk.Button(left_group, text="Upload Operator Wager Configuration Sheet", width=38, command=self.upload_operatorWagerSheet, **button_style)
         self.operator_wagerSheet_button.pack(pady=(0, 10))
         self.button_hover_effect(self.operator_wagerSheet_button)
 
         #Staging Operator GameList Report label and upload button
-        self.opGameList_stagingReport_label = tk.Label(right_group, text="Select Staging Operator GameList Report", **label_style)
+        self.opGameList_stagingReport_label = tk.Label(right_group, text="Staging GameList Report Uploaded: \nNONE", **label_style)
         self.opGameList_stagingReport_label.pack(pady=(0, 5))
-        self.opGameList_stagingReport_button = tk.Button(right_group, text="Upload Staging Operator GameList Report", width=38, command=self.upload_opGameList_stagingReport, **button_style)
+        self.opGameList_stagingReport_button = tk.Button(right_group, text="Upload Staging GameList Report", width=38, command=self.upload_opGameList_stagingReport, **button_style)
         self.opGameList_stagingReport_button.pack(pady=(0, 10))
         self.button_hover_effect(self.opGameList_stagingReport_button)
 
         #Production Operator GameList Report label and upload button
-        self.opGameList_productionReport_label = tk.Label(right_group, text="Select Production Operator GameList Report", **label_style)
+        self.opGameList_productionReport_label = tk.Label(right_group, text="Production GameList Report Uploaded: \nNONE", **label_style)
         self.opGameList_productionReport_label.pack(pady=(10, 5))
-        self.opGameList_productionReport_button = tk.Button(right_group, text="Upload Production Operator GameList Report", width=38, command=self.upload_opGameList_productionReport, **button_style)
+        self.opGameList_productionReport_button = tk.Button(right_group, text="Upload Production GameList Report", width=38, command=self.upload_opGameList_productionReport, **button_style)
         self.opGameList_productionReport_button.pack(pady=(0, 10))
         self.button_hover_effect(self.opGameList_productionReport_button)
 
         #Agile PLM Report label and upload button
-        self.agileReport_label = tk.Label(right_group, text="Select Agile PLM Report", **label_style)
+        self.agileReport_label = tk.Label(right_group, text="Agile PLM Report Uploaded: \nNONE", **label_style)
         self.agileReport_label.pack(pady=(10, 5))
         self.agileReport_button = tk.Button(right_group, text="Upload Agile PLM Report", width=38, command=self.upload_agileReport, **button_style)
         self.agileReport_button.pack(pady=(0, 10))
@@ -159,6 +168,11 @@ class FullAuditProgram:
         self.clear_button = tk.Button(action_frame, text="CLEAR FILES", font=("TkDefaultFont", 12, "bold"), command=self.clear_button, fg='white', bg="#6e6e6e", borderwidth=1)
         self.clear_button.pack(side="left", padx=10)
         self.button_hover_effect(self.clear_button)
+
+        #Exit button
+        self.exit_button = tk.Button(content_frame, text="EXIT", width=20, command=self.close_window, bg="#FF6F6F", fg='white', **exit_button_style)
+        self.exit_button.pack(padx=10)
+        self.button_hover_effect(self.exit_button, normal_bg="#FF6F6F")
 
         #Center action_frame for submit/clear buttons
         action_frame.pack_configure(anchor="center")
@@ -196,7 +210,7 @@ class FullAuditProgram:
 
     def clear_button(self):
         answer = messagebox.askyesno(
-            "Confirm Clear",
+            "Confirm Clear?",
             "Are you sure you want to clear all files selected?"
         )
         if answer:
@@ -209,23 +223,23 @@ class FullAuditProgram:
             self.agileReport_path = ""
             
             #Clear all labels and display red text
-            self.wagerAudit_Staging_label.config(text="Select Staging Wager Audit File", fg="#FF6F6F")
-            self.wagerAudit_Production_label.config(text="Select Production Wager Audit File", fg="#FF6F6F")
-            self.operator_wagerSheet_label.config(text="Select Operator Wager Configuration Sheet", fg="#FF6F6F")
-            self.opGameList_stagingReport_label.config(text="Select Staging Operator GameList Report", fg="#FF6F6F")
-            self.opGameList_productionReport_label.config(text="Select Production Operator GameList Report", fg="#FF6F6F")
-            self.agileReport_label.config(text="Select Agile PLM Report", fg="#FF6F6F")
+            self.wagerAudit_Staging_label.config(text="Staging Wager Audit File Uploaded: \nNONE", fg="#FF6F6F")
+            self.wagerAudit_Production_label.config(text="Production Wager Audit File Uploaded: \nNONE", fg="#FF6F6F")
+            self.operator_wagerSheet_label.config(text="Operator Wager Configuration Sheet Uploaded: \nNONE", fg="#FF6F6F")
+            self.opGameList_stagingReport_label.config(text="Staging GameList Report Uploaded: \nNONE", fg="#FF6F6F")
+            self.opGameList_productionReport_label.config(text="Production GameList Report Uploaded: \nNONE", fg="#FF6F6F")
+            self.agileReport_label.config(text="Agile PLM Report Uploaded: \nNONE", fg="#FF6F6F")
 
             #Disable the submit button and turn red
             self.submit_button.config(state=tk.DISABLED, bg="#FF6F6F")
 
             #Show message box to user stating cleared files
             messagebox.showinfo("All Files Cleared!",
-                                "All uploaded files were cleared. Select new files to upload.")
+                                "Cleared all uploaded files. Select new files to upload.")
             
         else: #Show message box to user the clear was canceled
             messagebox.showinfo("Canceled!",
-                                "Clear canceled.")
+                                "Clear canceled and uploaded files remain as is.")
 
     def upload_wagerAudit_Staging(self):
         self.wagerAudit_Staging_path = filedialog.askopenfilename(
@@ -236,8 +250,8 @@ class FullAuditProgram:
         if self.wagerAudit_Staging_path: #Checks if a file is selected
             self.wagerAudit_Staging_label.config(text=f"Staging Wager Audit File Uploaded: \n{self.wagerAudit_Staging_path.split('/')[-1]}", fg='#90EE90') #Displays file name once selected/updates label from red to green
         else:
-            messagebox.showwarning("Missing File!", "Select Staging Wager Audit File to proceed.") #Show warning if no staging wager audit file is selected
-            self.wagerAudit_Staging_label.config(text="Select Staging Wager Audit File", fg='#FF6F6F') #Update label to indicate no file is selected/turn label text red
+            messagebox.showwarning("File Upload Canceled!", "File upload canceled. Select Staging Wager Audit File to upload.") #Show warning if no staging wager audit file is selected
+            self.wagerAudit_Staging_label.config(text="Staging Wager Audit File Uploaded: \nNONE", fg='#FF6F6F') #Update label to indicate no file is selected/turn label text red
             self.wagerAudit_Staging_path = "" if not self.wagerAudit_Staging_path else self.wagerAudit_Staging_path
         self.enable_submit_button() #Enables submit button after selection
 
@@ -250,8 +264,8 @@ class FullAuditProgram:
         if self.wagerAudit_Production_path: #Checks if a file is selected
             self.wagerAudit_Production_label.config(text=f"Wager Production Audit File Uploaded: \n{self.wagerAudit_Production_path.split('/')[-1]}", fg='#90EE90') #Displays file name once selected/updates label from red to green
         else:
-            messagebox.showwarning("Missing File!", "Select Production Wager Audit File to proceed.") #Show warning if no production wager audit file is selected
-            self.wagerAudit_Production_label.config(text="Select Production Wager Audit File", fg='#FF6F6F') #Update label to indicate no file is selected/turn label text red
+            messagebox.showwarning("File Upload Canceled!", "File upload canceled. Select Production Wager Audit File to upload.") #Show warning if no production wager audit file is selected
+            self.wagerAudit_Production_label.config(text="Production Wager Audit File Uploaded: \nNONE", fg='#FF6F6F') #Update label to indicate no file is selected/turn label text red
             self.wagerAudit_Production_path = "" if not self.wagerAudit_Production_path else self.wagerAudit_Production_path
         self.enable_submit_button() #Enables submit button after selection
 
@@ -264,8 +278,8 @@ class FullAuditProgram:
         if self.operator_wagerSheet_path: #Checks if a file is selected
             self.operator_wagerSheet_label.config(text=f"Operator Wager Configuration Sheet Uploaded: \n{self.operator_wagerSheet_path.split('/')[-1]}", fg='#90EE90') #Displays file name once selected/updates label from red to green
         else:
-            messagebox.showwarning("Missing File!", "Select Operator Wager Configuration Sheet to proceed.") #Show warning if no op wager config sheet is selected
-            self.operator_wagerSheet_label.config(text="Select Operator Wager Configuration Sheet", fg='#FF6F6F') #Update label to indicate no file is selected/turn label text red
+            messagebox.showwarning("File Upload Canceled!", "File upload canceled. Select Operator Wager Configuration Sheet to upload.") #Show warning if no op wager config sheet is selected
+            self.operator_wagerSheet_label.config(text="Operator Wager Configuration Sheet Uploaded: \nNONE", fg='#FF6F6F') #Update label to indicate no file is selected/turn label text red
             self.operator_wagerSheet_path = "" if not self.operator_wagerSheet_path else self.operator_wagerSheet_path
         self.enable_submit_button() #Enables submit button after selection
 
@@ -276,10 +290,10 @@ class FullAuditProgram:
             ) #Allows user to upload csv file (this is the file type when file is downloaded from admin panel)
 
         if self.opGameList_stagingReport_path: #Checks if a file is selected
-            self.opGameList_stagingReport_label.config(text=f"Staging Operator GameList Report Uploaded: \n{self.opGameList_stagingReport_path.split('/')[-1]}", fg='#90EE90') #Displays file name once selected/updates label from red to green
+            self.opGameList_stagingReport_label.config(text=f"Staging GameList Report Uploaded: \n{self.opGameList_stagingReport_path.split('/')[-1]}", fg='#90EE90') #Displays file name once selected/updates label from red to green
         else:
-            messagebox.showwarning("Missing File!", "Select Staging Operator GameList Report to proceed.") #Show warning if no staging op gamelist report is selected
-            self.opGameList_stagingReport_label.config(text="Select Staging Operator GameList Report", fg='#FF6F6F') #Update label to indicate no file is selected/turn label text red
+            messagebox.showwarning("File Upload Canceled!", "File upload canceled. Select Staging GameList Report to upload.") #Show warning if no staging op gamelist report is selected
+            self.opGameList_stagingReport_label.config(text="Staging GameList Report Uploaded: \nNONE", fg='#FF6F6F') #Update label to indicate no file is selected/turn label text red
             self.opGameList_stagingReport_path = "" if not self.opGameList_stagingReport_path else self.opGameList_stagingReport_path
         self.enable_submit_button() #Enables submit button after selection
     
@@ -290,10 +304,10 @@ class FullAuditProgram:
             ) #Allows user to upload csv file (this is the file type when file is downloaded from admin panel)
 
         if self.opGameList_productionReport_path: #Checks if a file is selected
-            self.opGameList_productionReport_label.config(text=f"Production Operator GameList Report Uploaded: \n{self.opGameList_productionReport_path.split('/')[-1]}", fg='#90EE90') #Displays file name once selected/updates label from red to green
+            self.opGameList_productionReport_label.config(text=f"Production GameList Report Uploaded: \n{self.opGameList_productionReport_path.split('/')[-1]}", fg='#90EE90') #Displays file name once selected/updates label from red to green
         else:
-            messagebox.showwarning("Missing File!", "Select Production Operator GameList Report to proceed.") #Show warning if no production op gamelist report is selected
-            self.opGameList_productionReport_label.config(text="Select Production Operator GameList Report", fg='#FF6F6F') #Update label to indicate no file is selected/turn label text red
+            messagebox.showwarning("File Upload Canceled!", "File upload canceled. Select Production GameList Report to upload.") #Show warning if no production op gamelist report is selected
+            self.opGameList_productionReport_label.config(text="Production GameList Report Uploaded: \nNONE", fg='#FF6F6F') #Update label to indicate no file is selected/turn label text red
             self.opGameList_productionReport_path = "" if not self.opGameList_productionReport_path else self.opGameList_productionReport_path
 
     def upload_agileReport(self):
@@ -305,15 +319,16 @@ class FullAuditProgram:
         if self.agileReport_path: #Checks if a file is selected
             self.agileReport_label.config(text=f"Agile PLM Report Uploaded: \n{self.agileReport_path.split('/')[-1]}", fg='#90EE90') #Displays file name once selected/updates label from red to green
         else:
-            messagebox.showwarning("Missing File!", "Select Agile PLM Report to proceed.") #Show warning if no agile plm report is selected
-            self.agileReport_label.config(text="Select Agile PLM Report", fg='#FF6F6F') #Update label to indicate no file is selected/turn label text red
+            messagebox.showwarning("File Upload Canceled!", "File upload canceled. Select Agile PLM Report to upload.") #Show warning if no agile plm report is selected
+            self.agileReport_label.config(text="Agile PLM Report Uploaded: \nNONE", fg='#FF6F6F') #Update label to indicate no file is selected/turn label text red
             self.agileReport_path = "" if not self.agileReport_path else self.agileReport_path
         self.enable_submit_button() #Enables submit button after selection
 
     def submit_files(self):
         #Checks if all files are uploaded
         if not all([self.wagerAudit_Staging_path, self.wagerAudit_Production_path, self.operator_wagerSheet_path, self.opGameList_stagingReport_path, self.opGameList_productionReport_path, self.agileReport_path]):
-            messagebox.showwarning("Incomplete files!", "Upload all required files before submitting.") #Show warning if not all files were uploaded
+            messagebox.showwarning("Incomplete files!",
+                                   "Upload all required files before submitting.") #Show warning if not all files were uploaded
             return
 
         #Allows user to select the file save location
@@ -325,18 +340,18 @@ class FullAuditProgram:
         )
 
         if not file_path:
-            messagebox.showinfo("Missing File Path!",
+            messagebox.showinfo("No File Path Selected!",
                                 "Select file path to save Wager & Game/Math Version Audit Results and try again.") #Show canceled message if no save file path was selected
             self.enable_submit_button() #Enables submit button
             return
 
         #Message box to confirm user selected files for submission and allows user to hit cancel if needed to re-upload files
-        if messagebox.askyesno("Confirm Submit",
+        if messagebox.askyesno("Confirm Submit?",
                                "Are you sure you want to submit files for comparison?"):
             try:
                 result = self.compare_files(file_path) #Call the function to compare files and save
                 if result:
-                    messagebox.showinfo("Audit Results Saved!",
+                    messagebox.showinfo("Full Audit Results Saved!",
                                         f"Wager & Game/Math Version Audit Results successfully saved at: {file_path}.") #Success message and show user save location
                 else:
                     messagebox.showerror("Error!",
@@ -543,8 +558,9 @@ class FullAuditProgram:
         return None
 
     def partialMatching_GameNames(self, opGameList_Staging, opGameList_Production, min_length_ratio=0.4):
+        #Checks if shorter game name is contained in longer title and passes min length ratio
         shorter, longer = sorted([opGameList_Staging, opGameList_Production], key=len) #Sort game names by length so 'shorter' is always the smaller one
-        return shorter in longer and len(shorter) / len(longer) >= min_length_ratio #Checks for 1.substring match / 2.at least min length ratio of 50%
+        return shorter in longer and len(shorter) / len(longer) >= min_length_ratio #Checks for 1.substring match / 2.at least min length ratio of 40%
 
     def matching_GameNames(self, opGameList_StagingReport_gameNames, opGameList_ProductionReport_gameNames, agileReport_gameNames=None, threshold=85):
         #Handles Game Name exact + partial matches for all three files
@@ -674,14 +690,14 @@ class FullAuditProgram:
 
                 #Throws an error if no valid header rows are found in the files
                 if wagerAudit_Staging_header_row is None or wagerAudit_Production_header_row is None or operatorSheet_header_row is None:
-                    messagebox.showerror("Error!", "Could not find valid header rows in the Staging Wager Audit File, Production Wager Audit File, and Operator Wager Configuration Sheet.")
+                    messagebox.showerror("Missing Header Rows!", "Could not find valid header rows in the Staging Wager Audit File, Production Wager Audit File, and Operator Wager Configuration Sheet.")
                     return False
 
                 #Read full files, skipping the detected header rows
                 if self.wagerAudit_Staging_path.endswith('.csv'):
                     wagerAudit_StagingFile = pd.read_csv(self.wagerAudit_Staging_path, skiprows=wagerAudit_Staging_header_row, encoding='ISO-8859-1') #File format is downloaded as csv therefore will only support this file type
                 else:
-                    raise ValueError("Unsupported file format for Staging Wager File. Only ('.csv') file type is supported.") #Raise error if incorrect file type is selected
+                    raise ValueError("Unsupported file format for Staging Wager Audit File. Only ('.csv') file type is supported.") #Raise error if incorrect file type is selected
 
                 #Read full files, skipping the detected header rows
                 if self.wagerAudit_Production_path.endswith('.csv'):
@@ -829,8 +845,8 @@ class FullAuditProgram:
                         operatorSheet_file_matchedGameNames[wager_column] = operatorSheet_file_matchedGameNames[wager_column].apply(lambda x: self.normalize_value(x, is_percent_column=(wager_column in percent_column))).reset_index(drop=True)
 
                         #Side by side columns from all sheets to the DataFrame
-                        audit_results_wagerAudit[f"{wager_column}\n(Wager Staging Audit File): "] = wagerAudit_StagingFile_matchedGameNames[wager_column]
-                        audit_results_wagerAudit[f"{wager_column}\n(Wager Production Audit File): "] = wagerAudit_ProductionFile_matchedGameNames[wager_column]
+                        audit_results_wagerAudit[f"{wager_column}\n(Staging Wager Audit File): "] = wagerAudit_StagingFile_matchedGameNames[wager_column]
+                        audit_results_wagerAudit[f"{wager_column}\n(Production Wager Audit File): "] = wagerAudit_ProductionFile_matchedGameNames[wager_column]
                         audit_results_wagerAudit[f"{wager_column}\n({Path(self.operator_wagerSheet_path).stem[:31]}): "] = operatorSheet_file_matchedGameNames[wager_column]
 
                 audit_results_wagerAudit['Game'] = wagerAudit_StagingFile_matchedGameNames['Game'].values
@@ -868,19 +884,19 @@ class FullAuditProgram:
 
                 #Throws an error if no valid header rows are found in files
                 if opGameList_Staging_header_row is None or opGameList_Production_header_row is None or agileReport_header_row is None:
-                    messagebox.showerror("Error!", "Could not find valid header rows for the Staging Operator GameList Report, Production Operator GameList Report, and Agile PLM Report.")
+                    messagebox.showerror("Missing Header Rows!", "Could not find valid header rows for the Staging GameList Report, Production GameList Report, and Agile PLM Report.")
                     return False
 
                 #Read full files, skipping the detected header rows
                 if self.opGameList_stagingReport_path.endswith('.csv'):
                     opGameList_StagingFile = pd.read_csv(self.opGameList_stagingReport_path, skiprows=opGameList_Staging_header_row, encoding='ISO-8859-1', dtype=str) #File format is downloaded as csv therefore will only support this file type
                 else:
-                    raise ValueError("Unsupported file format for Staging Operator GameList Report. Only ('.csv') file type is supported.") #Raise error if incorrect file type is selected
+                    raise ValueError("Unsupported file format for Staging GameList Report. Only ('.csv') file type is supported.") #Raise error if incorrect file type is selected
 
                 if self.opGameList_productionReport_path.endswith('.csv'):
                     opGameList_ProductionFile = pd.read_csv(self.opGameList_productionReport_path, skiprows=opGameList_Production_header_row, encoding='ISO-8859-1', dtype=str) #File format is downloaded as csv therefore will only support this file type
                 else:
-                    raise ValueError("Unsupported file format for Production Operator GameList Report. Only ('.csv') file type is supported.") #Raise error if incorrect file type is selected
+                    raise ValueError("Unsupported file format for Production GameList Report. Only ('.csv') file type is supported.") #Raise error if incorrect file type is selected
 
                 if self.agileReport_path.endswith('.xlsx'):
                     agileReport_file = pd.read_excel(self.agileReport_path, header=agileReport_header_row, engine='openpyxl', dtype=str) #File format is downloaded as xlsx therefore will only support this file type
@@ -914,11 +930,11 @@ class FullAuditProgram:
 
                 #Checks for missing columns and if missing, program will not continue
                 if missing_opGameList_Staging_columns:
-                    messagebox.showerror("Missing columns!", f"The following columns are missing from Staging Operator GameList Report: {', '.join(missing_opGameList_Staging_columns)}")
+                    messagebox.showerror("Missing columns!", f"The following columns are missing from Staging GameList Report: {', '.join(missing_opGameList_Staging_columns)}")
                     return False
 
                 if missing_opGameList_Production_columns:
-                    messagebox.showerror("Missing columns!", f"The following columns are missing from Production Operator GameList Report: {', '.join(missing_opGameList_Production_columns)}")
+                    messagebox.showerror("Missing columns!", f"The following columns are missing from Production GameList Report: {', '.join(missing_opGameList_Production_columns)}")
                     return False
 
                 if missing_agileReport_columns:
@@ -963,8 +979,8 @@ class FullAuditProgram:
                 agileReport_file = agileReport_file.sort_values(by='Game', ascending=True)
 
                 #File labels for labeling on Missing Games sheet
-                file_labels = ['Staging Operator GameList Report',
-                               'Production Operator GameList Report',
+                file_labels = ['Staging GameList Report',
+                               'Production GameList Report',
                                'Agile PLM Report']
 
                 #Get Game Name matches from all files
@@ -1065,8 +1081,8 @@ class FullAuditProgram:
                     if col not in row3_agileReport_df:
                         raise KeyError(f"{col} not found in 'agileReport_file' matched rows datasets")
 
-                    audit_results_gameVersions[f"{col}\n(Staging Operator GameList Report): "] = row1_staging_df[col].reset_index(drop=True)
-                    audit_results_gameVersions[f"{col}\n(Production Operator GameList Report): "] = row2_production_df[col].reset_index(drop=True)
+                    audit_results_gameVersions[f"{col}\n(Staging GameList Report): "] = row1_staging_df[col].reset_index(drop=True)
+                    audit_results_gameVersions[f"{col}\n(Production GameList Report): "] = row2_production_df[col].reset_index(drop=True)
                     audit_results_gameVersions[f"{col}\n(Agile PLM Report): "] = row3_agileReport_df[col].reset_index(drop=True)
 
                 #Combine Jurisdiction column to only appear once (pulled from agile plm report column)
@@ -1100,7 +1116,7 @@ class FullAuditProgram:
                 #Check for duplicates in wagerAuditGroup
                 if len(sheet_names_wagerAuditGroup) != len(set(sheet_names_wagerAuditGroup)):
                     messagebox.showerror(
-                        "Error Duplicate File Names Detected!",
+                        "Duplicate File Names Detected!",
                         f'Duplicate file names detected for files: {sheet_names_wagerAuditGroup}.\n'
                         'Rename files to ensure unique sheet names and re-upload again.'
                     )
@@ -1115,7 +1131,7 @@ class FullAuditProgram:
                 #Check for duplicates in gameVersionAuditGroup
                 if len(sheet_names_gameVersionAuditGroup) != len(set(sheet_names_gameVersionAuditGroup)):
                     messagebox.showerror(
-                        "Error Duplicate File Names Detected!",
+                        "Duplicate File Names Detected!",
                         f'Duplicate file names detected for files: {sheet_names_gameVersionAuditGroup}.\n'
                         'Rename files to ensure unique sheet names and re-upload again.'
                     )
@@ -1281,6 +1297,3 @@ class FullAuditProgram:
                 return True
             else:
                 return False
-
-
-
