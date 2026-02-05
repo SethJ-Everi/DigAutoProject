@@ -1,34 +1,39 @@
 import tkinter as tk #Tkinter library for building the GUI
-from tkinter import filedialog, messagebox #File dialog and messagebox for interaction
+from tkinter import filedialog, messagebox #file dialog and messagebox for interaction
 import pandas as pd #Pandas library for handling Excel fles
 import xlsxwriter #XlsxWriter library for writing Excel files with formatting
+import math #module to allow for mathematical functions and constants
 import re #Regular expression module used for pattern-based string manipulation
-import unicodedata #Module for the Unicode Character Database
-from pathlib import Path #Module for modern object-oriented way to handle filesystem paths
+import csv #for reading from and writing to CSV
+import numpy as np #numerical python
+import unicodedata #module for the Unicode Character Database
+from pathlib import Path #module for modern object-oriented way to handle filesystem paths
 from difflib import SequenceMatcher #Import SequenceMatcher for computing similarity between two strings
 
 
-class JurisdictionGameVersionAuditProgram:
+class GameVersionAuditProgram:
     def __init__(self, master=None):
         self.window = tk.Toplevel(master)
-        self.window.title("Jurisdiction Game Version Audit Comparison Tool") #Window title
-        self.window.configure(bg="#2b2b2b") #Set window background color to white
+        self.window.title("Game Version Audit Comparison Tool") #window title
+        self.window.configure(bg="#2b2b2b") #set window background color to white
 
         self.window.protocol("WM_DELETE_WINDOW", self.close_window) #X button will confirm if user wants to close
 
-        self.supportPanel_report_path = "" #Path for installed game versions for all OPIDs retreived from Support Tool Admin Panel
-        self.agileReport_path = "" #Path for the Agile PLM Report for Latest Software Versions
+        self.opGameList_stagingReport_path = "" #path for Staging Op GameList Report
+        self.opGameList_productionReport_path = "" #path for Production Op GameList Report
+        self.agileReport_path = "" #path for Agile PLM Report
+
         self.create_widgets() #function for UI components
         self.adjust_window() #function for screen function
 
         #Default and min size settings
-        self.window.geometry("600x500")
-        self.window.minsize(600, 500)
+        self.window.geometry("800x600")
+        self.window.minsize(800, 600)
 
-    def close_window(self): #Function for cancel confirmation
+    def close_window(self): #function for cancel confirmation
         confirm = messagebox.askyesno(
-            "Exit Jurisdiction Game Version Audit?",
-            "Are you sure you want to exit the Jurisdiction Game Version Audit Tool?",
+            "Exit Game Version Audit?",
+            "Are you sure you want to close the Game Version Audit Tool?",
             parent=self.window
         )
         if confirm:
@@ -39,21 +44,21 @@ class JurisdictionGameVersionAuditProgram:
                 "Exit canceled.",
                 parent=self.window
             )
-        
+
     def adjust_window(self):
-        #Get the screens full width/height
+        #Get the screen's full width/height
         screen_width = self.window.winfo_screenwidth()
         screen_height = self.window.winfo_screenheight()
 
         #Defines the desired window dimensions
-        window_width = 600
-        window_height = 500
+        window_width = 800
+        window_height = 600
 
-        #Calculate the top-left corner position to center the window
-        position_top = int(screen_height / 2 - window_height / 2)
-        position_left = int(screen_width / 2 - window_width / 2)
+        #Calculate position to center the window
+        position_top = (screen_height - window_height) // 2
+        position_left = (screen_width - window_width) // 2
 
-        #Update the windows geometry to apply size and position
+        #Update the window's geometry to apply size and position
         self.window.geometry(f'{screen_width}x{window_height}+{position_left}+{position_top}')
 
     def create_widgets(self):
@@ -61,17 +66,17 @@ class JurisdictionGameVersionAuditProgram:
         content_frame = tk.Frame(self.window, bg="#2b2b2b", height=300)
         content_frame.pack(fill="both", expand=True, padx=20, pady=10)
 
-        #Welcome display text and label
-        welcome_text = "\nJurisdiction Game Version\nAudit Comparison Tool\n"
+        #Welcome display text
+        welcome_text = "\nGame Version\nAudit Comparison Tool\n"
         self.welcome_label = tk.Label(content_frame, text=welcome_text, font=("TkDefaultFont", 15, "bold"), fg='white', bg='#2b2b2b')
         self.welcome_label.pack(pady=10)
 
-        #Group container 
+        #Group container
         group_container = tk.Frame(content_frame, bg="#2b2b2b")
         group_container.pack()
 
-        #Center group for support panel/agile plm report buttons
-        center_group = tk.LabelFrame(group_container, text="Jurisdiction Game Version Audit Files", font=("TkDefaultFont", 8, "bold"), fg='white', bd=3, relief="groove", bg="#2b2b2b", padx=10, pady=10)
+        #Center group for Staging Op GameList Report/Production Op GameList Report/Agile PLM Report
+        center_group = tk.LabelFrame(group_container, text="Game Version Audit Files", font=("TkDefaultFont", 8, "bold"), fg='white', bd=3, relief="groove", bg="#2b2b2b", padx=10, pady=10)
         center_group.pack(anchor='center', padx=10)
 
         #Button style dictionary for all buttons
@@ -101,17 +106,24 @@ class JurisdictionGameVersionAuditProgram:
             "font": ("TkDefaultFont", 10, "bold")
         }
 
-        #Support Panel File label and upload button
-        self.supportPanel_report_label = tk.Label(center_group, text="Support Panel File Uploaded: \nNONE", **label_style)
-        self.supportPanel_report_label.pack(pady=(0, 5))
-        self.supportPanel_report_button = tk.Button(center_group, text="Upload Support Panel File", width=30, command=self.upload_supportPanel_report, **button_style)
-        self.supportPanel_report_button.pack(pady=(0, 10))
-        self.button_hover_effect(self.supportPanel_report_button)
+        #Staging Operator GameList Report label and upload button
+        self.opGameList_stagingReport_label = tk.Label(center_group, text="Staging GameList Report Uploaded: \nNONE", **label_style)
+        self.opGameList_stagingReport_label.pack(pady=(0, 5))
+        self.opGameList_stagingReport_button = tk.Button(center_group, text="Upload Staging GameList Report", width=38, command=self.upload_opGameList_stagingReport, **button_style)
+        self.opGameList_stagingReport_button.pack(pady=(0, 10))
+        self.button_hover_effect(self.opGameList_stagingReport_button)
+
+        #Production Operator GameList Report label and upload button
+        self.opGameList_productionReport_label = tk.Label(center_group, text="Production GameList Report Uploaded: \nNONE", **label_style)
+        self.opGameList_productionReport_label.pack(pady=(10, 5))
+        self.opGameList_productionReport_button = tk.Button(center_group, text="Upload Production GameList Report", width=38, command=self.upload_opGameList_productionReport, **button_style)
+        self.opGameList_productionReport_button.pack(pady=(0, 10))
+        self.button_hover_effect(self.opGameList_productionReport_button)
 
         #Agile PLM Report label and upload button
-        self.agileReport_label = tk.Label(center_group, text="Agile PLM Report Uploaded: \nNONE", **label_style)
-        self.agileReport_label.pack(pady=(0, 5))
-        self.agileReport_button = tk.Button(center_group, text="Upload Agile PLM Report", width=30, command=self.upload_agileReport, **button_style)
+        self.agilereport_label = tk.Label(center_group, text="Agile PLM Report Uploaded: \nNONE", **label_style)
+        self.agilereport_label.pack(pady=(10, 5))
+        self.agileReport_button = tk.Button(center_group, text="Upload Agile PLM Report", width=38, command=self.upload_agileReport, **button_style)
         self.agileReport_button.pack(pady=(0, 10))
         self.button_hover_effect(self.agileReport_button)
 
@@ -161,44 +173,57 @@ class JurisdictionGameVersionAuditProgram:
         button.bind("<Leave>", on_leave)
 
     def enable_submit_button(self):
-        #Enables the submit button if both files are not empty and turns green
-        if self.supportPanel_report_path and self.agileReport_path:
+        #Enables the submit button if files are not empty and turns green. Otherwise, displays red if no files are selected and remains disabled
+        if all([self.opGameList_stagingReport_path, self.opGameList_productionReport_path, self.agileReport_path]):
             self.submit_button.config(state=tk.NORMAL, bg='green')
         else:
-            self.submit_button.config(state=tk.DISABLED, bg="#FF6F6F") #Displays red if only one is selected and remains disabled
+            self.submit_button.config(state=tk.DISABLED, bg='#FF6F6F')
+        self.button_hover_effect(self.submit_button)
 
-    def upload_supportPanel_report(self):
-        self.supportPanel_report_path = filedialog.askopenfilename(
+    def upload_opGameList_stagingReport(self):
+        self.opGameList_stagingReport_path = filedialog.askopenfilename(
             parent=self.window,
-            filetypes=[("Excel Files", "*.xlsx")]
-            ) #Allows user to upload excel file only (this is the file type when file is downloadeded from admin panel)
+            filetypes=[("CSV Files", "*.csv")]
+            ) #Allows user to upload csv file (this is the file type when file is downloaded from admin panel)
 
-        if self.supportPanel_report_path: #Checks if a file is selected
-            self.supportPanel_report_label.config(text=f"Support Panel File Uploaded: \n{self.supportPanel_report_path.split('/')[-1]}", fg='#90EE90') #Displays file name once selected/updates label from red to green
+        if self.opGameList_stagingReport_path: #Checks if a file is selected
+            self.opGameList_stagingReport_label.config(text=f"Staging GameList Report Uploaded: \n{self.opGameList_stagingReport_path.split('/')[-1]}", fg='#90EE90') #Displays file name once selected/updates label from red to green
         else:
-            messagebox.showwarning("File Upload Canceled!", "File upload canceled. Select Support Panel File to upload.") #Show warning if no support panel file is selected 
-            self.supportPanel_report_label.config(text="Support Panel File Uploaded: \nNONE", fg='#FF6F6F') #Update label to indicate no file is selected/turn label text red
-            self.supportPanel_report_path = "" if not self.supportPanel_report_path else self.supportPanel_report_path
-
+            messagebox.showwarning("File Upload Canceled!", "File upload canceled. Select Staging GameList Report to upload.") #Show warning if no staging op gamelist report is selected 
+            self.opGameList_stagingReport_label.config(text="Staging GameList Report Uploaded: \nNONE", fg='#FF6F6F') #Update label to indicate no file is selected/turn label text red
+            self.opGameList_stagingReport_path = "" if not self.opGameList_stagingReport_path else self.opGameList_stagingReport_path
         self.enable_submit_button() #Enables submit button after selection
+    
+    def upload_opGameList_productionReport(self):
+        self.opGameList_productionReport_path = filedialog.askopenfilename(
+            parent=self.window,
+            filetypes=[("CSV Files", "*.csv")]
+            ) #Allows user to upload csv file (this is the file type when file is downloaded from admin panel)
+
+        if self.opGameList_productionReport_path: #Checks if a file is selected
+            self.opGameList_productionReport_label.config(text=f"Production GameList Report Uploaded: \n{self.opGameList_productionReport_path.split('/')[-1]}", fg='#90EE90') #Displays file name once selected/updates label from red to green
+        else:
+            messagebox.showwarning("File Upload Canceled!", "File upload canceled. Select Production GameList Report to upload.") #Show warning if no production op gamelist report is selected 
+            self.opGameList_productionReport_label.config(text="Production GameList Report Uploaded: \nNONE", fg='#FF6F6F') #Update label to indicate no file is selected/turn label text red
+            self.opGameList_productionReport_path = "" if not self.opGameList_productionReport_path else self.opGameList_productionReport_path
 
     def upload_agileReport(self):
         self.agileReport_path = filedialog.askopenfilename(
             parent=self.window,
             filetypes=[("Excel Files", "*.xlsx")]
-            ) #Allows user to upload excel file (this is the file type when file is downloadeded from agile power bi)
+            ) #Allows user to upload excel file (this is the file type when file is downloaded from agile power bi)
 
         if self.agileReport_path: #Checks if a file is selected
-            self.agileReport_label.config(text=f"Agile PLM Report Uploaded: \n{self.agileReport_path.split('/')[-1]}", fg='#90EE90') #Displays file name once selected/updates label from red to green
+            self.agilereport_label.config(text=f"Agile PLM Report Uploaded: \n{self.agileReport_path.split('/')[-1]}", fg='#90EE90') #Displays file name once selected/updates label from red to green
         else:
-            messagebox.showwarning("File Upload Canceled!", "File upload canceled. Select Agile PLM Report to upload.") #Show warning if no Agile PLM Report is selected
-            self.agileReport_label.config(text="Agile PLM Report Uploaded: \nNONE", fg='#FF6F6F') #Update label to indicate no file is selected/turn label text red
+            messagebox.showwarning("File Upload Canceled!", "File upload canceled. Select Agile PLM Report to upload.") #Show warning if no agile plm report is selected
+            self.agilereport_label.config(text="Agile PLM Report Uploaded: \nNONE", fg='#FF6F6F') #Update label to indicate no file is selected/turn label text red
             self.agileReport_path = "" if not self.agileReport_path else self.agileReport_path
         self.enable_submit_button() #Enables submit button after selection
 
     def submit_files(self):
         #Checks if all files are uploaded
-        if not all([self.supportPanel_report_path, self.agileReport_path]):
+        if not all([self.opGameList_stagingReport_path, self.opGameList_productionReport_path, self.agileReport_path]):
             messagebox.showwarning("Incomplete files!",
                                    "Upload all required files before submitting.") #Show warning if not all files were uploaded
             return
@@ -207,13 +232,13 @@ class JurisdictionGameVersionAuditProgram:
         file_path = filedialog.asksaveasfilename(
             parent=self.window,
             defaultextension=".xlsx",
-            filetypes=[("Excel files", "*.xlsx"), ("All files", "*.*")], #File types filter
-            title="File Save Location:" #Dialog title
+            filetypes=[("Excel files", "*.xlsx"), ("All files", "*.*")], #file types filter
+            title="File Save Location" #dialog title
         )
 
         if not file_path:
             messagebox.showinfo("No File Path Selected!",
-                                "Select file path to save Jurisdiction Game Version Audit Results and try again.") #Show cancelled message if no save file path was selected
+                                "Select file path to save Game Version Audit Results and try again.") #Show cancelled message if no save file path was selected
             self.enable_submit_button() #Enables submit button
             return
 
@@ -223,8 +248,8 @@ class JurisdictionGameVersionAuditProgram:
             try:
                 result = self.compare_files(file_path) #Call the function to compare files and save
                 if result:
-                    messagebox.showinfo("Jurisdiction Game Version Audit Results Saved!",
-                                        f"Jurisdiction Game Version Audit Results file successfully saved at: {file_path}.") #Success message and show user save location
+                    messagebox.showinfo("Game Version Audit Results Saved!",
+                                        f"Game Version Audit Results successfully saved at: {file_path}.") #Success message and show user save location
                 else:
                     messagebox.showerror("Error!",
                                          "Failed to save file. Check the correct file formats were submitted and try again.") #Show failure message if results fail
@@ -243,13 +268,15 @@ class JurisdictionGameVersionAuditProgram:
             "Are you sure you want to clear all files selected?"
         )
         if answer:
-            #Clear all file paths
-            self.supportPanel_report_path = ""
+            #Clear all file paths if yes is selected
+            self.opGameList_stagingReport_path = ""
+            self.opGameList_productionReport_path = ""
             self.agileReport_path = ""
-
+            
             #Clear all labels and display red text
-            self.supportPanel_report_label.config(text="Support Panel File Uploaded: \nNONE", fg="#FF6F6F")
-            self.agileReport_label.config(text="Agile PLM Report Uploaded: \nNONE", fg="#FF6F6F")
+            self.opGameList_stagingReport_label.config(text="Staging GameList Report Uploaded: \nNONE", fg="#FF6F6F")
+            self.opGameList_productionReport_label.config(text="Production GameList Report Uploaded: \nNONE", fg="#FF6F6F")
+            self.agilereport_label.config(text="Agile PLM Report Uploaded: \nNONE", fg="#FF6F6F")
 
             #Disable the submit button and turn red
             self.submit_button.config(state=tk.DISABLED, bg="#FF6F6F")
@@ -257,6 +284,7 @@ class JurisdictionGameVersionAuditProgram:
             #Show message box to user stating cleared files
             messagebox.showinfo("All Files Cleared!",
                                 "Cleared all uploaded files. Select new files to upload.")
+            
         else: #Show message box to user the clear was canceled
             messagebox.showinfo("Canceled!",
                                 "Clear canceled and uploaded files remain as is.")
@@ -271,107 +299,189 @@ class JurisdictionGameVersionAuditProgram:
             name = re.sub(r'\s+', '', name).strip() #Replace multiple spaces with no space, then strip leading/trailing
             return name.lower() #Convert to lowercase
         return name
-            
-    def detect_header_row(self, file_path, header_version_indicator=["game_name", "GameName"]):
-        #Handles automatically detecting header rows by scanning all rows and searching for header indicator
-        if not file_path.endswith('.xlsx'):
-            raise ValueError("Unsupported file format. Only Excel (.xlsx) file types are supported.") #Raise error for incorrect file formats
+                
+    def detect_version_row(self, file_path, header_version_indicator="Jurisdiction"):
+        #Handles automatically detecting header rows by scanning all rows
+        if file_path.endswith('.xlsx'): #Read Excel file
+            version_data = pd.read_excel(file_path, header=None, engine='openpyxl') #Checks all rows for header
+            version_data = version_data.apply(lambda col: col.map(lambda x: x.strip() if isinstance(x, str) else x)) #Cleans up unwanted spaces before further processing
+
+            #DEBUG: Print first 5 rows for inspection
+            print("\nDEBUG Excel Files: Preview of first 5 raw rows:")
+            print(version_data.head())
+
+        elif file_path.endswith('.csv'): #Handles csv files differently
+            rows = [] #Empty list to store rows
+            with open(file_path, 'r', encoding='ISO-8859-1') as f:
+                reader = csv.reader(f)
+                print("\nDEBUG CSV Files: Preview of first 5 raw rows:") #DEBUG: Print first 5 rows for inspection
+
+                for i, row in enumerate(reader): #Iterate over each row
+                    standardizedversion_row = [cell.strip() if isinstance(cell, str) and cell.strip() else '' for cell in row]
+                    
+                    if i < 5: #DEBUG: print standardized row for first 5 rows
+                        print(f"Line {i}: {standardizedversion_row}")
+
+                    rows.append(standardizedversion_row) #Append normalized row to the list of rows
+
+            #Convert rows to DataFrame after reading rows, replace empty strings, None values with NaN for easier handling
+            version_data = pd.DataFrame(rows).replace(['', None], np.nan)
+        else:
+            raise ValueError("Unsupported file format. Only ('.csv') and ('.xlsx') file types are supported.") #Raise error for incorrect file formats
         
-        version_data = pd.read_excel(file_path, header=None, engine='openpyxl') #Checks all rows for header
-
-        version_data = version_data.apply(lambda col: col.map(lambda x: x.strip() if isinstance(x, str) else x)) #Cleans up unwanted spaces before further processing
-
-        #DEBUG: Print first 5 rows for inspection
-        print("\nDEBUG: Preview of first 5 raw rows:")
-        for i in range(min(5, len(version_data))):
-            print(f"Row {i}: {version_data.iloc[i].tolist()}")
-                        
         for idx, row in version_data.iterrows(): #Iterate through each row, convert all values to string, strip spaces
             versionrow_values = [str(cell).strip() for cell in row.values if isinstance(cell, str)]
             lowered_values = [val.lower() for val in versionrow_values]
 
-            if any(header.lower() in val for header in header_version_indicator for val in lowered_values):
+            #Check if 'Jurisdiction' is a part of any column names in this row
+            if any(header_version_indicator.lower() in val for val in lowered_values):
                 print(f"Header row detected at index {idx}")
                 return idx
-
+            
         print("No matching header row found.")
         return None
 
-    def partialMatching_GameNames(self, supportPanel_report, agileReport, min_length_ratio=0.4):
-        shorter, longer = sorted([supportPanel_report, agileReport], key=len) #Sort game names by length so 'shorter' is always the smaller one
-        return shorter in longer and len(shorter) / len(longer) >= min_length_ratio #Checks for 1.substring match / 2.at least min length ratio of 50%
+    def partialMatching_GameNames(self, opGameList_Staging, opGameList_Production, min_length_ratio=0.4):
+        #Checks if shorter game name is contained in longer title and passes min length ratio
+        shorter, longer = sorted([opGameList_Staging, opGameList_Production], key=len) #Sort game names by length so 'shorter' is always the smaller one
+        return shorter in longer and len(shorter) / len(longer) >= min_length_ratio #Checks for 1.substring match / 2.at least min length ratio of 40%
 
-    def matching_GameNames(self, supportPanel_report_gameNames, agileReport_gameNames, threshold=85):
-        #Handles Game Name matches that may be different on both reports. For ex, Off The Hook; Good Ol Fishin Hole in the Agile Report vs Good Ol Fishin Hole in the Support Panel File
-        gameName_matches = [] #List to store final matches
-        gameName_matches_agileReport = set() #Tracks game names from Agile PLM Report that have already been matched (avoid duplicates)
+    def matching_GameNames(self, opGameList_StagingReport_gameNames, opGameList_ProductionReport_gameNames, agileReport_gameNames=None, threshold=85):
+        #Handles Game Name exact + partial matches for all three files
+        gameName_matches = [] #Store final game name matches
+        gameName_matches_opGameList_Production = set() #Tracks which game name matches have already been matched in the opGameList Production file
+        used_agileReport = set() if agileReport_gameNames else None #Tracks used titles in Agile PLM Report file
 
-        #Loop over each game name in Support Panel File
-        for supportPanel_report in supportPanel_report_gameNames:
-            best_score = 0 #Reset best score for each game name in Support Panel File
-            best_match = None #Reset best match for each game name in Support Panel File
-            
-            #Compare game name from Support Panel File against Agile PLM Report
-            for agileReport in agileReport_gameNames:
-                if agileReport in gameName_matches_agileReport: #Skip if Agile PLM Report game name matched another in Support Pane File
+        #Local forced matches mapping
+        #Keys: (Staging file, Production file), Values: Agile PLM Report to force
+        #Entered lowercase & without spaces since values are normalized before hitting this function
+        forced_gameName_matches = {
+            ("mgmlions", "mgmlions"): "detroitlionsdeluxe",
+            ("borgata", "borgata"): "borgata777respin",
+            ("mgmjets", "mgmjets"): "newyorkjetsdeluxe",
+            ("mgmsteelers", "mgmsteelers"): "pittsburghsteelersdeluxe",
+            ("nflphiladelphiaeagles", "nflphiladelphiaeagles"): "philadelphiaeaglesjackpots",
+            ("cashmachinematchthree", "cashmachinematchthree"): "cashmachinematch3",
+            ("hoopdynastymatchthree", "hoopdynastymatchthree"): "hoopdynastymatch3",
+            ("doubleblackdiamondmatchthree", "doubleblackdiamondmatchthree"): "doubleblackdiamondmatch3"
+        }
+
+        #Loop through game names in opGameList Staging Report
+        for opGameList_StagingReport in opGameList_StagingReport_gameNames:
+            best_score2 = 0
+            best_match2 = None
+
+            #Compare Staging game names against all Production game names
+            for opGameList_ProductionReport in opGameList_ProductionReport_gameNames:
+                #Skip if Production game names already matched
+                if opGameList_ProductionReport in gameName_matches_opGameList_Production:
                     continue
 
-                #Compute character-level similarity ratio between game names
-                score = SequenceMatcher(None, supportPanel_report, agileReport).ratio() * 100
+                #Similarity score (0-100)
+                score2 = SequenceMatcher(None, opGameList_StagingReport, opGameList_ProductionReport).ratio() * 100
+                #Boost score if partial match is detected
+                if self.partialMatching_GameNames(opGameList_StagingReport, opGameList_ProductionReport):
+                    score2 = max(score2, threshold + 1)
 
-                #If this is the best match score, store it
-                if score > best_score:
-                    best_score = score
-                    best_match = agileReport
+                #Keep best-scoring game name matches from Production file
+                if score2 > best_score2:
+                    best_score2 = score2
+                    best_match2 = opGameList_ProductionReport
 
-                #Override: apply if no strong score but game names are partially similar ex: el dorado vs el dorado the lost city
-                if self.partialMatching_GameNames(supportPanel_report, agileReport) and best_score < threshold:
-                    best_score = threshold + 1
-                    best_match = agileReport
+            #Lock in Production game name match if threshold is met
+            if best_score2 >= threshold and best_match2:
+                gameName_matches_opGameList_Production.add(best_match2)
 
-            #If the best match is above threshold, store the match after checking all game names from both files
-            if best_score >= threshold and best_match:
-                gameName_matches.append((supportPanel_report, best_match, best_score)) #Add the successful match
-                gameName_matches_agileReport.add(best_match) #Mark this as matched so it won't be reused
+                #Check for forced match for Agile PLM Report
+                forced_gameNameMatches_agileReport = None
+                if agileReport_gameNames:
+                    forced_gameNameMatches_agileReport = forced_gameName_matches.get((opGameList_StagingReport, best_match2))
 
-        return gameName_matches #Return the full list of matched game names and their scores
+                #Add tuple with Agile PLM Report = Staging report to ensure display game name matches Staging/Production
+                if forced_gameNameMatches_agileReport:
+                    used_agileReport.add(forced_gameNameMatches_agileReport)
+                    gameName_matches.append(
+                        (opGameList_StagingReport, best_match2, forced_gameNameMatches_agileReport, best_score2, threshold + 1) #Agile PLM Report game name renamed to Staging game name
+                    )
+                    continue #Skip to next if statement
+
+                #If Agile PLM Report game name already exists, try to match too
+                if agileReport_gameNames:
+                    best_score3 = 0
+                    best_match3 = None
+                    for agileReport in agileReport_gameNames:
+                        if agileReport in used_agileReport: #Skip game names from Agile PLM Report already used
+                            continue
+
+                        #Similarity score (0-100)
+                        score3 = SequenceMatcher(None, opGameList_StagingReport, agileReport).ratio() * 100
+                        #Boost score if partial match is detected
+                        if self.partialMatching_GameNames(opGameList_StagingReport, agileReport):
+                            score3 = max(score3, threshold + 1)
+
+                        #Keep best-scoring game name matches from Agile PLM Report
+                        if score3 > best_score3:
+                            best_score3 = score3
+                            best_match3 = agileReport
+
+                    #Save triple match if Agile PLM Report file passes threshold
+                    if best_score3 >= threshold and best_match3:
+                        used_agileReport.add(best_match3)
+                        gameName_matches.append((opGameList_StagingReport, best_match2, best_match3, best_score2, best_score3))
+                else:
+                    #Save pair match (for Staging and Production files only)
+                    gameName_matches.append((opGameList_StagingReport, best_match2, best_score2))
+
+        #Return all collected game name matches
+        return gameName_matches
 
     def compare_files(self, file_path):
-            #Checks if both files have been uploaded
-            if not self.supportPanel_report_path or not self.agileReport_path:
-                messagebox.showerror("Error!", "Upload all files to proceed.") #Show error message if no files were uploaded
-                return False
+            #Checks if all required files are missing
+            if not all([self.opGameList_stagingReport_path, self.opGameList_productionReport_path, self.agileReport_path]):
+                messagebox.showerror("Error!", "Upload all files to proceed.") #Show error if any files are missing
+                return False #Stop further execution if files are incomplete
             
             all_valid = True #Set the validation flag to True if all files are present and proceed with processing
-            
-            try:   
-                #Detect the header rows for both files automatically finding column name 'game_name' for Support Panel File and 'GameName' for Agile PLM Report
-                supportPanel_report_header_row = self.detect_header_row(self.supportPanel_report_path, header_version_indicator=["game_name"])
-                agilereport_header_row = self.detect_header_row(self.agileReport_path, header_version_indicator=["GameName"])
+                        
+            #Process for Staging Operator GameList/Production Operator GameList Reports and Agile PLM Report
+            try:
+                #Checks required columns are present in all files
+                opGameList_columns = ["jurisdictionId", "gameId", "mathVersion", "Version"]
+                agileReport_columns = ["Jurisdiction", "GameName", "Math Version", "Latest Software Version"]
 
-                #Throws an error if no valid header rows are found in the files
-                if supportPanel_report_header_row is None or agilereport_header_row is None:
-                    messagebox.showerror("Missing Header Rows!", "Could not find valid header rows for all selected files. Confirm proper files were uploaded and try again.")
+                #Defining column mapping for version audit manually so that names match data
+                column_mapping_versions = {
+                    "jurisdictionId": "Jurisdiction",
+                    "gameId": "GameName",
+                    "mathVersion": "Math Version",
+                    "Version": "Latest Software Version"
+                }
+
+                #Detect the header rows for files automatically finding column names
+                opGameList_Staging_header_row = self.detect_version_row(self.opGameList_stagingReport_path, header_version_indicator="jurisdictionId")
+                opGameList_Production_header_row = self.detect_version_row(self.opGameList_productionReport_path, header_version_indicator="jurisdictionId")
+                agilereport_header_row = self.detect_version_row(self.agileReport_path, header_version_indicator="Jurisdiction")
+
+                #Throws an error if no valid header rows are found in files
+                if opGameList_Staging_header_row is None or opGameList_Production_header_row is None or agilereport_header_row is None:
+                    messagebox.showerror("Missing Header Rows!", "Could not find valid header rows for all uploaded files. Confirm proper files were uploaded and try again.")
                     return False
-            
+
                 #Read full files, skipping the detected header rows
-                if self.supportPanel_report_path.endswith('.xlsx'):
-                    supportPanel_report_file = pd.read_excel(self.supportPanel_report_path, header=supportPanel_report_header_row, engine='openpyxl', dtype=str) #File format is downloaded as xlsx therefore will only support this file type
+                if self.opGameList_stagingReport_path.endswith('.csv'):
+                    opGameList_StagingFile = pd.read_csv(self.opGameList_stagingReport_path, skiprows=opGameList_Staging_header_row, encoding='ISO-8859-1', dtype=str) #File format is downloaded as csv therefore will only support this file type
                 else:
-                    raise ValueError("Unsupported file format for Support Panel File. Only ('.xlsx') file type is supported.") #Raise error if incorrect file type is selected
+                    raise ValueError("Unsupported file format for Staging GameList Report. Only ('.csv') file type is supported.") #Raise error if incorrect file type is selected
+                
+                if self.opGameList_productionReport_path.endswith('.csv'):
+                    opGameList_ProductionFile = pd.read_csv(self.opGameList_productionReport_path, skiprows=opGameList_Production_header_row, encoding='ISO-8859-1', dtype=str) #File format is downloaded as csv therefore will only support this file type
+                else:
+                    raise ValueError("Unsupported file format for Production GameList Report. Only ('.csv') file type is supported.") #Raise error if incorrect file type is selected
 
                 if self.agileReport_path.endswith('.xlsx'):
                     agileReport_file = pd.read_excel(self.agileReport_path, header=agilereport_header_row, engine='openpyxl', dtype=str) #File format is downloaded as xlsx therefore will only support this file type
                 else:
                     raise ValueError("Unsupported file format for Agile PLM Report. Only ('.xlsx') file type is supported.") #Raise error if incorrect file type is selected
-
-                #Renames columns to match column mapping; renames 'game_name' column from the Support Panel File and 'GameName' column from the Agile PLM Report to 'Game Name' for consistency
-                try:
-                    supportPanel_report_file.rename(columns={'game_name': 'Game Name'}, inplace=True)
-                    agileReport_file.rename(columns={'GameName': 'Game Name'}, inplace=True)
-                except Exception as e:
-                    messagebox.showerror("Error!", f"Column renaming failed: {str(e)}") #Show error if there's an issue renaming columns to 'Game Name'
-                    return False
                 
                 #Drop rows containing unwanted text from Agile PLM report specifically OR Blank rows completely
                 unwanted_keywords_agilePLMReport = ['applied filters:']
@@ -383,107 +493,215 @@ class JurisdictionGameVersionAuditProgram:
                     axis=1
                 )].reset_index(drop=True)
 
-                #Normalize column names and strip spaces
-                supportPanel_report_file.columns = supportPanel_report_file.columns.astype(str).str.strip()
+                #Normalize column names, strip spaces
+                opGameList_StagingFile.columns = opGameList_StagingFile.columns.astype(str).str.strip()
+                opGameList_ProductionFile.columns = opGameList_ProductionFile.columns.astype(str).str.strip()
                 agileReport_file.columns = agileReport_file.columns.astype(str).str.strip()
 
-                #Applies normalization to 'Game Name' column for both files
-                supportPanel_report_file['Game Name'] = supportPanel_report_file['Game Name'].apply(self.normalize_name)
-                agileReport_file['Game Name'] = agileReport_file['Game Name'].apply(self.normalize_name)
-               
+                #Filter only relevant columns
+                opGameList_StagingFile = opGameList_StagingFile[opGameList_columns]
+                opGameList_ProductionFile = opGameList_ProductionFile[opGameList_columns]
+                agileReport_file = agileReport_file[agileReport_columns]
+
+                #Identify if expected columns are missing
+                missing_opGameList_Staging_columns = [col for col in opGameList_columns if col not in opGameList_StagingFile.columns]
+                missing_opGameList_Production_columns = [col for col in opGameList_columns if col not in opGameList_ProductionFile.columns]
+                missing_agileReport_columns = [col for col in agileReport_columns if col not in agileReport_file.columns]
+
+                #Checks for missing columns and if missing, program will not continue
+                if missing_opGameList_Staging_columns:
+                    messagebox.showerror("Missing columns!", f"The following columns are missing from Staging GameList Report: {', '.join(missing_opGameList_Staging_columns)}")
+                    return False
+                
+                if missing_opGameList_Production_columns:
+                    messagebox.showerror("Missing columns!", f"The following columns are missing from Production GameList Report: {', '.join(missing_opGameList_Production_columns)}")
+                    return False
+                
+                if missing_agileReport_columns:
+                    messagebox.showerror("Missing columns!", f"The following columns are missing from Agile PLM Report: {', '.join(missing_agileReport_columns)}")
+                    return False
+
+                #Renames columns to match column mapping; renames 'GameName' column to 'Game' for consistency
+                try:
+                    opGameList_StagingFile = opGameList_StagingFile.rename(columns=column_mapping_versions)
+                    opGameList_ProductionFile = opGameList_ProductionFile.rename(columns=column_mapping_versions)
+                    agileReport_file = agileReport_file.rename(columns=column_mapping_versions)
+
+                    if 'GameName' in opGameList_StagingFile.columns:
+                        opGameList_StagingFile = opGameList_StagingFile.rename(columns={'GameName': 'Game'})
+                    if 'GameName' in opGameList_ProductionFile.columns:
+                        opGameList_ProductionFile = opGameList_ProductionFile.rename(columns={'GameName': 'Game'})
+                    if 'GameName' in agileReport_file.columns:
+                        agileReport_file = agileReport_file.rename(columns={'GameName': 'Game'})
+
+                except Exception as e:
+                    messagebox.showerror("Error in column_mapping_versions", str(e))
+                    return False
+                
+                #Applies normalization to columns
+                opGameList_StagingFile['Game'] = opGameList_StagingFile['Game'].apply(self.normalize_name)
+                opGameList_ProductionFile['Game'] = opGameList_ProductionFile['Game'].apply(self.normalize_name)
+                agileReport_file['Game'] = agileReport_file['Game'].apply(self.normalize_name)
+
                 #Fill NaN values with 'N/A' for consistency during comparison/export
-                supportPanel_report_file = supportPanel_report_file.fillna('N/A')
+                opGameList_StagingFile = opGameList_StagingFile.fillna('N/A')
+                opGameList_ProductionFile = opGameList_ProductionFile.fillna('N/A')
                 agileReport_file = agileReport_file.fillna('N/A')
 
-                agileReport_file = agileReport_file.drop_duplicates(subset='Game Name', keep='last') #Keeps last listed version as it is the latest approved per the Agile PLM Report specifically
+                #Removes duplicates in DataFrames to ensure it only appears once
+                opGameList_StagingFile = opGameList_StagingFile.drop_duplicates(subset='Game')
+                opGameList_ProductionFile = opGameList_ProductionFile.drop_duplicates(subset='Game')
+                agileReport_file = agileReport_file.drop_duplicates(subset='Game', keep='last') #keeps last listed version as it is the latest approved per the Agile PLM Report specifically
 
-                #Sorts 'Game Name' column alphabetically in both DataFrames
-                supportPanel_report_file = supportPanel_report_file.sort_values(by='Game Name', ascending=True)
-                agileReport_file = agileReport_file.sort_values(by='Game Name', ascending=True)
+                #Sorts 'Game' column alphabetically in DataFrames
+                opGameList_StagingFile = opGameList_StagingFile.sort_values(by='Game', ascending=True)
+                opGameList_ProductionFile = opGameList_ProductionFile.sort_values(by='Game', ascending=True)
+                agileReport_file = agileReport_file.sort_values(by='Game', ascending=True)
+
+                #File labels for labeling on Missing Games sheet
+                file_labels = ['Staging GameList Report',
+                               'Production GameList Report',
+                               'Agile PLM Report']
 
                 #Get Game Name matches from all files
-                matches = self.matching_GameNames(
-                    list(supportPanel_report_file['Game Name']),
-                    list(agileReport_file['Game Name']),
-                    threshold=85
+                gameName_matches_versionAudit = self.matching_GameNames(
+                    list(opGameList_StagingFile['Game']),
+                    list(opGameList_ProductionFile['Game']),
+                    list(agileReport_file['Game']),
+                    threshold=85,
                 )
 
-                #Get sets of matched Game Names
-                matched_supportPanel_report_file = set([m[0] for m in matches])
-                matched_agileReport_file = set([m[1] for m in matches])
+                #Build map for agile plm report game name to op gamelist staging (partial matches)
+                agileReport_file_to_opGameList_stagingFile_map = {m[2]: m[0] for m in gameName_matches_versionAudit if m[2] != m[0]}
 
-                #Get all Game Names from both files
-                games_supportPanel_report_file = set(supportPanel_report_file['Game Name'])
-                games_agileReport_file = set(agileReport_file['Game Name'])
+                #Pre-align agile plm report game names using the mapping above
+                agileReport_file_aligned = agileReport_file.copy()
+                agileReport_file_aligned['Game'] = agileReport_file_aligned['Game'].apply(
+                    lambda t: agileReport_file_to_opGameList_stagingFile_map.get(t, t)
+                )
 
-                #Determine missing Game Names from both files
-                missing_games_supportPanel_report = games_agileReport_file - matched_agileReport_file
-                missing_games_agileReport = games_supportPanel_report_file - matched_supportPanel_report_file
+                #Build missing game name sets for detection
+                opGameList_stagingFile_set = set(opGameList_StagingFile['Game'])
+                opGameList_productionFile_set = set(opGameList_ProductionFile['Game'])
+                agileReportFile_set = set(agileReport_file_aligned['Game'])
 
-                allmissing_gameNames = [] #Empty dict to collect missing Game Names
+                all_gameNames_union = opGameList_stagingFile_set.union(opGameList_productionFile_set).union(agileReportFile_set)
+                allFiles_set = [opGameList_stagingFile_set, opGameList_productionFile_set, agileReportFile_set]
 
-                #Loop through all Game Names to see which are missing
-                for game in missing_games_supportPanel_report:
-                    allmissing_gameNames.append({'Game Name': game, 'Status': 'Missing in Support Panel File'})
+                #Compute missing game names
+                allMissing_gameNames_versionAudit = [] #Empty list to collect missing Game Names
 
-                for game in missing_games_agileReport:
-                    allmissing_gameNames.append({'Game Name': game, 'Status': 'Missing in Agile PLM Report'})
+                for gameVersions in all_gameNames_union:
+                    missingVersions_in = [
+                        file_labels[i] for i, gameVersions_sets in enumerate(allFiles_set)
+                        if gameVersions not in gameVersions_sets
+                    ]
+                    #Append one row per Game Name with combined missing info
+                    if missingVersions_in:
+                        combinedVersions_status = ', '.join(missingVersions_in)
+                        allMissing_gameNames_versionAudit.append({
+                            'Game': gameVersions,
+                            'Status': f'Missing in {combinedVersions_status}'
+                        })
 
-                #Final DataFrame for missing Game Names for sheet 4
-                missing_games = pd.DataFrame(allmissing_gameNames).sort_values(by='Game Name').reset_index(drop=True)
+                #Convert missing Game Names list of dicts into a DataFrame and sort it for Missing Games sheet
+                missing_gameNames_versionAudit = (
+                    pd.DataFrame(allMissing_gameNames_versionAudit)
+                    .drop_duplicates(subset=['Game', 'Status'])
+                    .sort_values(by='Game')
+                    .reset_index(drop=True)
+                )
 
-                #Mapping from both files using matching_GameNames
-                agileReport_to_supportPanel_map = {match[1]: match[0] for match in matches}
+                #Collect matched rows for final audit results only if all three files have the same Game Name
+                opGameList_stagingFile_matchedGameNames, opGameList_productionFile_matchedGameNames, agileReport_matchedGameNames, gameName_rows = [], [], [], []
 
-                #Preserve original Game Name column for sheet 2
-                agileReport_file['Game_Name_Mapped'] = agileReport_file['Game Name']
+                #Loop over all matched game name tuples
+                for t1, t2, t3, *_ in gameName_matches_versionAudit:
+                    row1_staging_df = opGameList_StagingFile.loc[opGameList_StagingFile['Game'] == t1] #Get the row(s) from Staging file where game name matches t1
+                    row2_production_df = opGameList_ProductionFile.loc[opGameList_ProductionFile['Game'] == t2] #Get the row(s) from Production file where game name matches t2
+                    row3_agileReport_df = agileReport_file.loc[agileReport_file['Game'] == t3] #Get the row(s) from Agile PLM file where game name matches t3
 
-                #Map Agile PLM Report Game Names to match Support Panel Game Names, store in Game_Name_Mapped
-                agileReport_file['Game_Name_Mapped'] = agileReport_file['Game Name'].apply(lambda t: agileReport_to_supportPanel_map.get(t, None))
+                    #Skip if any row is missing
+                    if row1_staging_df.empty or row2_production_df.empty or row3_agileReport_df.empty:
+                        continue
 
-                #Filter matched Game Names only
-                agileReport_file_matched = agileReport_file[agileReport_file['Game_Name_Mapped'].notnull()]
-                supportPanel_report_file_matched = supportPanel_report_file[supportPanel_report_file['Game Name'].isin(matched_supportPanel_report_file)]
+                    #Convert first matching row to dictionary
+                    row1_idx_staging = row1_staging_df.iloc[0].to_dict()
+                    row2_idx_production = row2_production_df.iloc[0].to_dict()
+                    row3_idx_agileReport = row3_agileReport_df.iloc[0].copy().to_dict() #Create copy to avoid modifyng original
 
-                #Merge using temporary mapped game name column and rename
-                agileReport_file_reduced = agileReport_file_matched[['Game_Name_Mapped', 'Latest Software Version']]
+                    #Rename Agile PLM Report game names to Staging file to ensure side-by-side comparison aligns correctly
+                    if t3 != t1:
+                        row3_idx_agileReport['Game'] = t1
+
+                    #Append rows to lists that will build final Excel results
+                    opGameList_stagingFile_matchedGameNames.append(row1_idx_staging)
+                    opGameList_productionFile_matchedGameNames.append(row2_idx_production)
+                    agileReport_matchedGameNames.append(row3_idx_agileReport)
+                    gameName_rows.append({'Game': t1}) #Keep canonical Staging file game name for alignment
+
+                #Build results table
+                row1_staging_df = pd.DataFrame(opGameList_stagingFile_matchedGameNames).reset_index(drop=True)
+                row2_production_df = pd.DataFrame(opGameList_productionFile_matchedGameNames).reset_index(drop=True)
+                row3_agileReport_df = pd.DataFrame(agileReport_matchedGameNames).reset_index(drop=True)
+                gameName_rows_df = pd.DataFrame(gameName_rows).drop_duplicates().reset_index(drop=True)
+                audit_results_versions = gameName_rows_df.copy()
+
+                all_combined_columns = (
+                    set(row1_staging_df.columns)
+                    .union(row2_production_df.columns)
+                    .union(row3_agileReport_df.columns)
+                    - {'Game'}
+                )
+
+                #Combine remaining columns with validation
+                for col in sorted(all_combined_columns):
+                    if col == 'Jurisdiction':
+                        continue #Skip adding Jurisdiction to handle separately below
+                    if col not in row1_staging_df:
+                        raise KeyError(f"{col} not found in 'opGameList_StagingFile' matched rows datasets")
+                    if col not in row2_production_df:
+                        raise KeyError(f"{col} not found in 'opGameList_ProductionFile' matched rows datasets")
+                    if col not in row3_agileReport_df:
+                        raise KeyError(f"{col} not found in 'agileReport_file_aligned' matched rows datasets")
+                    
+                    audit_results_versions[f"{col}\n(Staging GameList Report):"] = row1_staging_df[col].reset_index(drop=True)
+                    audit_results_versions[f"{col}\n(Production GameList Report):"] = row2_production_df[col].reset_index(drop=True)
+                    audit_results_versions[f"{col}\n(Agile PLM Report):"] = row3_agileReport_df[col].reset_index(drop=True)
+
+                #Jurisdiction to only appear once pulled from agile plm report column
+                if 'Jurisdiction' in row3_agileReport_df.columns:
+                    audit_results_versions['Jurisdiction'] = row3_agileReport_df['Jurisdiction'].reset_index(drop=True)
+                    audit_results_versions = audit_results_versions.sort_values(by='Game', ascending=True).reset_index(drop=True)
+                    #Rearrange columns putting Jurisdiction before Game
+                    cols = list(audit_results_versions.columns)
+                    cols.remove('Jurisdiction')
+                    gameName_index = cols.index('Game')
+                    cols.insert(gameName_index, 'Jurisdiction')
+                    audit_results_versions = audit_results_versions[cols]
+                else:
+                    audit_results_versions = audit_results_versions.sort_values(by='Game', ascending=True).reset_index(drop=True)
+
+                missing_games_versions = pd.DataFrame(allMissing_gameNames_versionAudit).sort_values(by='Game').reset_index(drop=True) #For missing game sheet
                 
-                #Merge files with reduced columns and add next to 'Game Name'
-                audit_results_versions = supportPanel_report_file_matched.merge(agileReport_file_reduced, left_on='Game Name', right_on='Game_Name_Mapped', how='left')
-
-                #Drop extra Game_Name_Mapped column on merged files
-                audit_results_versions.drop(columns=['Game_Name_Mapped'], inplace=True)
-
-                #Sort results by ascending order
-                audit_results_versions = audit_results_versions.sort_values(by='Game Name', ascending=True).reset_index(drop=True)
-
-                #Rearrange columns putting Latest Software Version next to Game Name and adding to the final results on sheet 3
-                cols = list(audit_results_versions.columns)
-                cols.remove('Latest Software Version')
-                gameName_index = cols.index('Game Name')
-                cols.insert(gameName_index + 1, 'Latest Software Version')
-                audit_results_versions = audit_results_versions[cols]
-
-                #Dropping 'Game_Name_Mapped' from Agile PLM Report as it is no longer needed after this
-                agileReport_file.drop(columns=['Game_Name_Mapped'], inplace=True)
-
             except Exception as e:
                 all_valid = False
-                print(f"Error caught in except block: {e}")
-                messagebox.showerror("Error!", f"An error has occured for Support Panel File and Agile PLM Report: {str(e)}")
+                messagebox.showerror("Error!", f"An error has occured for the Staging GameList Report, Production GameList Report, and Agile PLM Report: {str(e)}")
                 return False
 
+            #If all files are processed successfully and True, proceed with Excel writing
             if all_valid:
-                #Safety check to ensure file names are not the same for Juris Game Version Audit Files so that it does not overwrite sheets accidently
-                sheet_names_jurisGameVersionAuditGroup = [
-                    Path(self.supportPanel_report_path).stem[:31],
+                #Safety check to ensure file names are not the same for Game/Math Version Audit Files so that it does not overwrite sheets accidently
+                sheet_names_gameVersionAuditGroup = [
+                    Path(self.opGameList_stagingReport_path).stem[:31],
+                    Path(self.opGameList_productionReport_path).stem[:31],
                     Path(self.agileReport_path).stem[:31]
                 ]
                 #Check for duplicates in gameVersionAuditGroup
-                if len(sheet_names_jurisGameVersionAuditGroup) != len(set(sheet_names_jurisGameVersionAuditGroup)):
+                if len(sheet_names_gameVersionAuditGroup) != len(set(sheet_names_gameVersionAuditGroup)):
                     messagebox.showerror(
                         "Duplicate File Names Detected!",
-                        f'Duplicate file names detected for files: {sheet_names_jurisGameVersionAuditGroup}.\n'
+                        f'Duplicate file names detected for files: {sheet_names_gameVersionAuditGroup}.\n'
                         'Rename files to ensure unique sheet names and re-upload again.'
                     )
                     return #Stop execution until files are renamed properly
@@ -492,33 +710,35 @@ class JurisdictionGameVersionAuditProgram:
                     #Write to excel with formatting
                     with pd.ExcelWriter(file_path, engine='xlsxwriter') as writer:
                         #Write to Excel with sheet names
-                        supportPanel_report_file.to_excel(writer, sheet_name=sheet_names_jurisGameVersionAuditGroup[0], index=False) #Support Panel File raw data in sheet 1
-                        agileReport_file.to_excel(writer, sheet_name=sheet_names_jurisGameVersionAuditGroup[1], index=False) #Agile PLM Report raw data in sheet 2
-                        audit_results_versions.to_excel(writer, sheet_name='Game Version Audit Results', index=False) #Game Version Audit Results in sheet 3
-                        missing_games.to_excel(writer, sheet_name='Missing Games', index=False) #Missing games that don't exist in both file in sheet 4
+                        opGameList_StagingFile.to_excel(writer, sheet_name=sheet_names_gameVersionAuditGroup[0], index=False) #Staging Op GameList Report raw data on sheet 1
+                        opGameList_ProductionFile.to_excel(writer, sheet_name=sheet_names_gameVersionAuditGroup[1], index=False) #Production Op GameList Report raw data on sheet 2
+                        agileReport_file.to_excel(writer, sheet_name=sheet_names_gameVersionAuditGroup[2], index=False) #Agile PLM Report raw data on sheet 3
+                        audit_results_versions.to_excel(writer, sheet_name='Game&Math Version Audit Results', index=False) #GameVersion Audit Results with side by side comparison on sheet 4
+                        missing_games_versions.to_excel(writer, sheet_name='Missing Games', index=False) #Missing games on sheet 5
 
                         #Access the workbook and worksheet to apply formatting
                         workbook = writer.book
 
-                        #Define formats for header, cell, and red highlighting for mistmatched cell values
+                        #Define formats
                         header_format = workbook.add_format({'bg_color': '#D9D9D9', 'bold': True, 'border': 2, 'text_wrap': True}) #Grey header format (bold, thick borders)
-                        cell_format = workbook.add_format({'border': 1, 'border_color': '#BFBFBF'}) #borders for data cells
-                        red_format = workbook.add_format({'bg_color': '#FF6F6F'}) #Red format highlights cells red when there's a mismatch on Game Version Audit Results
+                        cell_format = workbook.add_format({'border': 1, 'border_color': '#BFBFBF'}) #Borders for data cells
+                        red_format = workbook.add_format({'bg_color': '#FF6F6F'}) #Red format highlights cells red when there's a mismatch on GameVersion Audit Results
 
-                        #Loop to apply formats to all sheets
+                        #Loop & apply formats to all sheets
                         for df, sheet_name in [
-                            (supportPanel_report_file, Path(self.supportPanel_report_path).stem[:31]),
+                            (opGameList_StagingFile, Path(self.opGameList_stagingReport_path).stem[:31]),
+                            (opGameList_ProductionFile, Path(self.opGameList_productionReport_path).stem[:31]),
                             (agileReport_file, Path(self.agileReport_path).stem[:31]),
-                            (audit_results_versions, 'Game Version Audit Results'),
-                            (missing_games, 'Missing Games')
+                            (audit_results_versions, 'Game&Math Version Audit Results'),
+                            (missing_games_versions, 'Missing Games')
                         ]:
                             worksheet = writer.sheets[sheet_name]
 
-                            #Header row formatting and auto adjust column widths
+                            #Header row formatting and auto-adjust column widths
                             for col_num, column_name in enumerate(df.columns):
                                 worksheet.write(0, col_num, column_name, header_format)
 
-                                #Auto adjust column width to fit contents by calculating optimal column widths based on header/data length
+                                #Auto-adjust column width to fit contents by calculating optimal column widths based on header/data length
                                 if df[column_name].notna().any():
                                     max_val_len = df[column_name].astype(str).map(len).max()
                                 else:
@@ -527,12 +747,10 @@ class JurisdictionGameVersionAuditProgram:
                                 max_len = max(max_val_len, len(column_name))
                                 worksheet.set_column(col_num, col_num, max_len + 2) #Add padding
 
-                            worksheet.autofilter(0, 0, 0, len(df.columns) - 1) #Add filter to header row for user to be able to filter results as needed
+                            worksheet.autofilter(0, 0, 0, len(df.columns) - 1) #Add filter to header row
 
-                            if sheet_name == Path(self.supportPanel_report_path).stem[:31]:
-                                worksheet.freeze_panes(1, 1) #Only freeze top row and game name column for support panel sheet
-                            elif sheet_name == Path(self.agileReport_path).stem[:31] or sheet_name == 'Game Version Audit Results':
-                                worksheet.freeze_panes(1, 2) #Only freeze top row and first two columns for Agile PLM Report and Results sheet
+                            if sheet_name != 'Missing Games': #Skip freezing columns for Missing Games sheet as we only need to freeze top row
+                                worksheet.freeze_panes(1, 2) #Freeze top row and game name column to keep headers/game names visible when scrolling
                             else: #Only freeze top row for Missing Games sheet
                                 worksheet.freeze_panes(1, 0)
 
@@ -544,29 +762,76 @@ class JurisdictionGameVersionAuditProgram:
                                         worksheet.write(row, col, "", cell_format)
                                     else:
                                         worksheet.write(row, col, val, cell_format)
+                                                              
+                            
+                            auditResults_versions_skipColumns = ['Jurisdiction', 'Game'] #Columns to specifically skip for audit_results_versions
 
-                            if df is audit_results_versions:
-                                lastest_softwareVersion_idx =  df.columns.get_loc('Latest Software Version') #Get the index for Latest Software Version dynamically
-                                columnCompare_indices = [i for i in range(lastest_softwareVersion_idx + 1, len(df.columns))] #Get indices of all columns after Latest Software Version to compare against
+                            #Iterates through rows/columns to apply formatting for mismatches
+                            for row in range(1, len(df) + 1):
+                                col_idx = 0 #Start at the first column
+                                while col_idx < len(df.columns):
+                                    try:
+                                        remaining_columns = len(df.columns) - col_idx #Calculate remaining columns
+                                        column_name = df.columns[col_idx]
 
-                                #Loop through each row of the DataFrame starting at row 1
-                                for row in range(1, len(df) + 1):
-                                    for col_idx in columnCompare_indices: #Loop through each column that comes after Latest Software Version
-                                        try:
-                                            val_latest_softwareVersion = df.iloc[row - 1, lastest_softwareVersion_idx] #Get value in Latest Software Version column
-                                            safe_val_latest_softwareVersion = "" if pd.isna(val_latest_softwareVersion) else str(val_latest_softwareVersion).strip() #Convert to string, strip whitespaces, or use NaN for empty strings
+                                        #Detect single columns for combined columns dynamically
+                                        single_column = column_name in auditResults_versions_skipColumns or remaining_columns < 3
+                                        #Excluding column name 'Jurisdiction' from being highlighted red due to inconsistencies on Agile PLM Report
+                                        if single_column:
+                                            val = df.iat[row - 1, col_idx]
+                                            worksheet.write(row, col_idx, val)
+                                            col_idx += 1
+                                            continue
 
-                                            val_operatorVersions = df.iloc[row - 1, col_idx] #Get operator versions column
-                                            safe_val_operatorVersions = "" if pd.isna(val_operatorVersions) else str(val_operatorVersions).strip() #Convert to string, strip whitespaces, or use NaN for empty strings
+                                        #Access up to 3 values for comparison
+                                        val1 = df.iat[row - 1, col_idx]
+                                        val2 = df.iat[row - 1, col_idx + 1] if remaining_columns > 1 else None
+                                        val3 = df.iat[row - 1, col_idx + 2] if remaining_columns > 2 else None
 
-                                            #Compare against Latest Software Version and highlights mismatches in red
-                                            if safe_val_latest_softwareVersion != safe_val_operatorVersions:
-                                                worksheet.write(row, col_idx, safe_val_operatorVersions, red_format)
-                                            else: #Leave and write normally if they match
-                                                worksheet.write(row, col_idx, safe_val_operatorVersions)
+                                        #Replace NaN or None with empty string (if necessary)
+                                        columns_in_groups = ["" if pd.isna(val1) or val1 is None else val1]
+                                        if val2 is not None:
+                                            columns_in_groups.append("" if pd.isna(val2) or val2 is None else val2)
+                                        if val3 is not None:
+                                            columns_in_groups.append("" if pd.isna(val3) or val3 is None else val3)
 
-                                        except Exception as e:
-                                            print(f"Error processing row {row}, col_idx {col_idx}: {e}")
+                                        #Only apply red highlighting to audit_results_versions
+                                        if df is audit_results_versions:
+                                            n_vals = len(columns_in_groups)
+                                            highlight_flags = [False] * n_vals #Flags for highlighting
+
+                                            #Count occurrences of each value
+                                            value_counts = {}
+                                            for v in columns_in_groups:
+                                                value_counts[v] = value_counts.get(v, 0) + 1
+
+                                            #Highlight all values if all do not match
+                                            if len(value_counts) ==  n_vals:
+                                                highlight_flags = [True] * n_vals
+                                            else:
+                                                max_frequency = max(value_counts.values()) #Find the majority value
+                                                #Flag any value that is not in majority
+                                                for i, v in enumerate(columns_in_groups):
+                                                    if value_counts[v] < max_frequency:
+                                                        highlight_flags[i] = True
+
+                                            #Write values to worksheet with red formatting
+                                            for i, v in enumerate(columns_in_groups):
+                                                fmt = red_format if highlight_flags[i] else None
+                                                worksheet.write(row, col_idx + i, v, fmt)
+
+                                            col_idx += n_vals #Move past this group
+
+                                        else: #For all other sheets write normally without highlighting/comparison
+                                            write_columns = min(3, remaining_columns)
+                                            for i in range(write_columns):
+                                                val = df.iat[row - 1, col_idx + i]
+                                                worksheet.write(row, col_idx + i, val)
+                                            col_idx += write_columns
+
+                                    except Exception as e: #Debug to catch errors per row/column
+                                        print(f"Error processing row: '{row}', col_idx: '{col_idx}': '{e}'")
+                                        col_idx += 1 #Move to next column to avoid an infinite loop
 
                 except Exception as e:
                     all_valid = False
@@ -575,7 +840,8 @@ class JurisdictionGameVersionAuditProgram:
 
             #Success message when results are True and all passes successfully
             if all_valid:
-                messagebox.showinfo("Success!", "All files processed successfully and Jurisdiction Game Version Audit Results are complete!")
+                messagebox.showinfo("Success!", "All files processed successfully and Game Version Audit Results are complete.")
                 return True
             else:
                 return False
+            
