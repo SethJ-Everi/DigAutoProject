@@ -31,15 +31,17 @@ class WagerAuditProgram:
 
     def close_window(self): #function for cancel confirmation
         confirm = messagebox.askyesno(
-            "Exit Wager Audit",
-            "Are you sure you want to close the Wager Audit?"
+            "Exit Wager Audit?",
+            "Are you sure you want to exit the Wager Audit Tool?",
+            parent=self.window
         )
         if confirm:
             self.window.destroy() #To close this window only
         else:
             messagebox.showinfo(
                 "Canceled!",
-                "Close canceled."
+                "Exit canceled.",
+                parent=self.window
             )
 
     def adjust_window(self):
@@ -95,22 +97,30 @@ class WagerAuditProgram:
             "pady": 2,
             "font": ("TkDefaultFont", 10)
         }
+
+        #Button style dictionary for exit button
+        exit_button_style = {
+            "borderwidth": 1,
+            "highlightthickness": 0,
+            "font": ("TkDefaultFont", 10, "bold")
+        }
+
         #Staging Wager Audit label and upload button
-        self.wagerAudit_Staging_label = tk.Label(center_group, text="Select Staging Wager Audit File", **label_style)
+        self.wagerAudit_Staging_label = tk.Label(center_group, text="Staging Wager Audit File Uploaded: \nNONE", **label_style)
         self.wagerAudit_Staging_label.pack(pady=(0, 5))
         self.wagerAudit_Staging_button = tk.Button(center_group, text="Upload Staging Wager Audit File", width=38, command=self.upload_wagerAudit_Staging, **button_style)
         self.wagerAudit_Staging_button.pack(pady=(0, 10))
         self.button_hover_effect(self.wagerAudit_Staging_button)
 
         #Production Wager Audit label and upload button
-        self.wagerAudit_Production_label = tk.Label(center_group, text="Select Wager Production Audit File", **label_style)
+        self.wagerAudit_Production_label = tk.Label(center_group, text="Production Wager Audit File Uploaded: \nNONE", **label_style)
         self.wagerAudit_Production_label.pack(pady=(10, 5))
-        self.wagerAudit_Production_button = tk.Button(center_group, text="Upload Wager Production Audit File", width=38, command=self.upload_wagerAudit_Production, **button_style)
+        self.wagerAudit_Production_button = tk.Button(center_group, text="Upload Production Wager Audit File", width=38, command=self.upload_wagerAudit_Production, **button_style)
         self.wagerAudit_Production_button.pack(pady=(0, 10))
         self.button_hover_effect(self.wagerAudit_Production_button)
 
         #Operator Wager Config Sheet label and upload button
-        self.operator_wagerSheet_label = tk.Label(center_group, text="Select Operator Wager Configuration Sheet", **label_style)
+        self.operator_wagerSheet_label = tk.Label(center_group, text="Operator Wager Configuration Sheet Uploaded: \nNONE", **label_style)
         self.operator_wagerSheet_label.pack(pady=(10, 5))
         self.operator_wagerSheet_button = tk.Button(center_group, text="Upload Operator Wager Configuration Sheet", width=38, command=self.upload_operatorWagerSheet, **button_style)
         self.operator_wagerSheet_button.pack(pady=(0, 10))
@@ -129,6 +139,11 @@ class WagerAuditProgram:
         self.clear_button = tk.Button(action_frame, text="CLEAR FILES", font=("TkDefaultFont", 12, "bold"), command=self.clear_button, fg='white', bg="#6e6e6e", borderwidth=1)
         self.clear_button.pack(side="left", padx=10)
         self.button_hover_effect(self.clear_button)
+
+        #Exit button
+        self.exit_button = tk.Button(content_frame, text="EXIT", width=20, command=self.close_window, bg="#FF6F6F", fg='white', **exit_button_style)
+        self.exit_button.pack(padx=10)
+        self.button_hover_effect(self.exit_button, normal_bg="#FF6F6F")
 
         #Center action_frame for submit/clear buttons
         action_frame.pack_configure(anchor="center")
@@ -173,8 +188,8 @@ class WagerAuditProgram:
         if self.wagerAudit_Staging_path: #Checks if a file is selected
             self.wagerAudit_Staging_label.config(text=f"Staging Wager Audit File Uploaded: \n{self.wagerAudit_Staging_path.split('/')[-1]}", fg='#90EE90') #Displays file name once selected/updates label from red to green
         else:
-            messagebox.showwarning("Missing File!", "Select Staging Wager Audit File to proceed.") #Show warning if no staging wager audit file is selected
-            self.wagerAudit_Staging_label.config(text="Select Staging Wager Audit File", fg='#FF6F6F') #Update label to indicate no file is selected/turn label text red
+            messagebox.showwarning("File Upload Canceled!", "File upload canceled. Select Staging Wager Audit File to upload.") #Show warning if no staging wager audit file is selected
+            self.wagerAudit_Staging_label.config(text="Staging Wager Audit File Uploaded: \nNONE", fg='#FF6F6F') #Update label to indicate no file is selected/turn label text red
             self.wagerAudit_Staging_path = "" if not self.wagerAudit_Staging_path else self.wagerAudit_Staging_path
         self.enable_submit_button() #Enables submit button after selection
 
@@ -185,10 +200,10 @@ class WagerAuditProgram:
             ) #Allows user to upload csv file (this is the file type when file is downloaded from admin panel)
 
         if self.wagerAudit_Production_path: #Checks if a file is selected
-            self.wagerAudit_Production_label.config(text=f"Wager Production Audit File Uploaded: \n{self.wagerAudit_Production_path.split('/')[-1]}", fg='#90EE90') #Displays file name once selected/updates label from red to green
+            self.wagerAudit_Production_label.config(text=f"Production Wager Audit File Uploaded: \n{self.wagerAudit_Production_path.split('/')[-1]}", fg='#90EE90') #Displays file name once selected/updates label from red to green
         else:
-            messagebox.showwarning("Missing File!", "Select Production Wager Audit File to proceed.") #Show warning if no production wager audit file is selected
-            self.wagerAudit_Production_label.config(text="Select Production Wager Audit File", fg='#FF6F6F') #Update label to indicate no file is selected/turn label text red
+            messagebox.showwarning("File Upload Canceled!", "File upload canceled. Select Production Wager Audit File to upload.") #Show warning if no production wager audit file is selected
+            self.wagerAudit_Production_label.config(text="Production Wager Audit File Uploaded: \nNONE", fg='#FF6F6F') #Update label to indicate no file is selected/turn label text red
             self.wagerAudit_Production_path = "" if not self.wagerAudit_Production_path else self.wagerAudit_Production_path
         self.enable_submit_button() #Enables submit button after selection 
 
@@ -201,15 +216,16 @@ class WagerAuditProgram:
         if self.operator_wagerSheet_path: #Checks if a file is selected
             self.operator_wagerSheet_label.config(text=f"Operator Wager Configuration Sheet Uploaded: \n{self.operator_wagerSheet_path.split('/')[-1]}", fg='#90EE90') #Displays file name once selected/updates label from red to green
         else:
-            messagebox.showwarning("Missing File!", "Select Operator Wager Configuration Sheet to proceed.") #Show warning if no op wager config sheet is selected
-            self.operator_wagerSheet_label.config(text="Select Operator Wager Configuration Sheet", fg='#FF6F6F') #Update label to indicate no file is selected/turn label text red
+            messagebox.showwarning("File Upload Canceled!", "File upload canceled. Select Operator Wager Configuration Sheet to upload.") #Show warning if no op wager config sheet is selected
+            self.operator_wagerSheet_label.config(text="Operator Wager Configuration Sheet Uploaded: \nNONE", fg='#FF6F6F') #Update label to indicate no file is selected/turn label text red
             self.operator_wagerSheet_path = "" if not self.operator_wagerSheet_path else self.operator_wagerSheet_path
         self.enable_submit_button() #Enables submit button after selection
 
     def submit_files(self):
         #Checks if all files are uploaded
         if not all([self.wagerAudit_Staging_path, self.wagerAudit_Production_path, self.operator_wagerSheet_path]):
-            messagebox.showwarning("Incomplete files!", "Upload all required files before submitting.") #Show warning if not all files were uploaded
+            messagebox.showwarning("Incomplete files!",
+                                   "Upload all required files before submitting.") #Show warning if not all files were uploaded
             return
 
         #Allows user to select the file save location
@@ -221,13 +237,13 @@ class WagerAuditProgram:
         )
 
         if not file_path:
-            messagebox.showinfo("Missing File Path!",
+            messagebox.showinfo("No File Path Selected!",
                                 "Select file path to save Wager Audit Results and try again.") #Show cancelled message if no save file path was selected
             self.enable_submit_button() #Enables submit button
             return
 
         #Message box to confirm user selected files for submission and allows user to hit cancel if needed to re-upload files
-        if messagebox.askyesno("Confirm Submit",
+        if messagebox.askyesno("Confirm Submit?",
                                "Are you sure you want to submit files for comparison?"):
             try:
                 result = self.compare_files(file_path) #Call the function to compare files and save
@@ -242,13 +258,13 @@ class WagerAuditProgram:
                                      f"Error occurred during export: {str(e)}") #Show error if there's an exception while saving files
         else:
             messagebox.showinfo("Canceled!",
-                                "File submission canceled. Upload all required files to submit and try again.") #Display cancel message if user hits cancel
+                                "File submission canceled! Upload all required files to submit and try again.") #Display cancel message if user hits cancel
 
         self.enable_submit_button() #Resets submit button to it's default state after handling success, cancellation, or missing file path
 
     def clear_button(self):
         answer = messagebox.askyesno(
-            "Confirm Clear",
+            "Confirm Clear?",
             "Are you sure you want to clear all files selected?"
         )
         if answer:
@@ -258,20 +274,20 @@ class WagerAuditProgram:
             self.operator_wagerSheet_path = ""
             
             #Clear all labels and display red text
-            self.wagerAudit_Staging_label.config(text="Select Staging Wager Audit File", fg="#FF6F6F")
-            self.wagerAudit_Production_label.config(text="Select Production Wager Audit File", fg="#FF6F6F")
-            self.operator_wagerSheet_label.config(text="Select Operator Wager Configuration Sheet", fg="#FF6F6F")
+            self.wagerAudit_Staging_label.config(text="Staging Wager Audit File Uploaded: \nNONE", fg="#FF6F6F")
+            self.wagerAudit_Production_label.config(text="Production Wager Audit File Uploaded: \nNONE", fg="#FF6F6F")
+            self.operator_wagerSheet_label.config(text="Operator Wager Configuration Sheet Uploaded: \nNONE", fg="#FF6F6F")
 
             #Disable the submit button and turn red
             self.submit_button.config(state=tk.DISABLED, bg="#FF6F6F")
 
             #Show message box to user stating cleared files
             messagebox.showinfo("All Files Cleared!",
-                                "All uploaded files were cleared. Select new files to upload.")
+                                "Cleared all uploaded files. Select new files to upload.")
             
         else: #Show message box to user the clear was canceled
             messagebox.showinfo("Canceled!",
-                                "Clear canceled.")
+                                "Clear canceled and uploaded files remain as is.")
 
     def normalize_name(self, name): #Standardize game name column
         #Convert NaN or missing values to empty string
@@ -300,7 +316,7 @@ class WagerAuditProgram:
                 if '.' in val:
                     number_part = val.replace('%', '').strip() #Strip percent symbol
                     decimal_val = float(number_part) / 100 #Decimal percentage, divide by 100
-                    rounded_val = math.floor(decimal_val * 100 + 0.5) / 100 #If RTP is above 0.5% round up; if below 0.5% round down (ex: 90.50% = 91%; 90.40% = 90%)
+                    rounded_val = math.floor(decimal_val * 100 + 0.5) / 100 #Rounds up to the next decimal place (ex: 0.9595 to 0.96); rounding can be removed if op wager sheets have exact RTPs; will highlight red if not exact
                     percent_val = int(rounded_val * 100) #Convert decimnal back to whole percent
                     return f"{percent_val}%" #Add back %
                 else:
@@ -314,7 +330,7 @@ class WagerAuditProgram:
             try:
                 numeric_val = float(val)
                 if 0 < numeric_val < 1: #Only decimals between 0 and 1
-                    percent_val = int(math.floor(numeric_val * 100 + 0.5)) #If RTP is above 0.5% round up; if below 0.5% round down (ex: 90.50% = 91%; 90.40% = 90%)
+                    percent_val = int(math.floor(numeric_val * 100 + 0.5))
                 elif 1 <= numeric_val <= 100:
                     percent_val = int(math.floor(numeric_val + 0.5))
                 else:
@@ -427,7 +443,7 @@ class WagerAuditProgram:
     def compare_files(self, file_path):
             #Checks if all required files are missing
             if not all([self.wagerAudit_Staging_path, self.wagerAudit_Production_path, self.operator_wagerSheet_path]):
-                messagebox.showerror("Error!", "Upload all required files to proceed.") #Show error if any files are missing
+                messagebox.showerror("Error!", "Upload all files to proceed.") #Show error if any files are missing
                 return False #Stop further execution if files are incomplete
             
             all_valid = True #Set the validation flag to True if all files are present and proceed with processing
@@ -463,14 +479,14 @@ class WagerAuditProgram:
 
                 #Throws an error if no valid header rows are found in the files
                 if wagerAudit_Staging_header_row is None or wagerAudit_Production_header_row is None or operatorSheet_header_row is None:
-                    messagebox.showerror("Error!", "Could not find valid header rows in all selected files.")
+                    messagebox.showerror("Missing Header Rows!", "Could not find valid header rows for all uploaded files. Confirm proper files were uploaded and try again.")
                     return False
             
                 #Read full files, skipping the detected header rows
                 if self.wagerAudit_Staging_path.endswith('.csv'):
                     wagerAudit_StagingFile = pd.read_csv(self.wagerAudit_Staging_path, skiprows=wagerAudit_Staging_header_row, encoding='ISO-8859-1') #File format is downloaded as csv therefore will only support this file type
                 else:
-                    raise ValueError("Unsupported file format for Staging Wager File. Only ('.csv') file type is supported.") #Raise error if incorrect file type is selected
+                    raise ValueError("Unsupported file format for Staging Wager Audit File. Only ('.csv') file type is supported.") #Raise error if incorrect file type is selected
                 
                 #Read full files, skipping the detected header rows
                 if self.wagerAudit_Production_path.endswith('.csv'):
@@ -618,8 +634,8 @@ class WagerAuditProgram:
                         operatorSheet_file_matchedGameNames[wager_column] = operatorSheet_file_matchedGameNames[wager_column].apply(lambda x: self.normalize_value(x, is_percent_column=(wager_column in percent_column))).reset_index(drop=True)
 
                         #Side by side columns from all sheets to the DataFrame
-                        audit_results_wagers[f"{wager_column}\n(Wager Staging Audit File): "] = wagerAudit_StagingFile_matchedGameNames[wager_column]
-                        audit_results_wagers[f"{wager_column}\n(Wager Production Audit File): "] = wagerAudit_ProductionFile_matchedGameNames[wager_column]
+                        audit_results_wagers[f"{wager_column}\n(Staging Wager Audit File): "] = wagerAudit_StagingFile_matchedGameNames[wager_column]
+                        audit_results_wagers[f"{wager_column}\n(Production Wager Audit File): "] = wagerAudit_ProductionFile_matchedGameNames[wager_column]
                         audit_results_wagers[f"{wager_column}\n({Path(self.operator_wagerSheet_path).stem[:31]}): "] = operatorSheet_file_matchedGameNames[wager_column]
 
                 audit_results_wagers['Game'] = wagerAudit_StagingFile_matchedGameNames['Game'].values
@@ -633,7 +649,7 @@ class WagerAuditProgram:
             except Exception as e:
                 all_valid = False
                 print(f"Error caught in except block: {e}")
-                messagebox.showerror("Error", f"An error has occured for Staging Wager Audit File, Production Wager Audit File, and Operator Wager Configuration Sheet: {str(e)}")
+                messagebox.showerror("Error!", f"An error has occured for Staging Wager Audit File, Production Wager Audit File, and Operator Wager Configuration Sheet: {str(e)}")
                 return False
             
             #If all files are processed successfully and True, proceed with Excel writing
@@ -647,7 +663,7 @@ class WagerAuditProgram:
                 #Check for duplicates in wagerAuditGroup
                 if len(sheet_names_wagerAuditGroup) != len(set(sheet_names_wagerAuditGroup)):
                     messagebox.showerror(
-                        "Error Duplicate File Names Detected!",
+                        "Duplicate File Names Detected!",
                         f'Duplicate file names detected for files: {sheet_names_wagerAuditGroup}.\n'
                         'Rename files to ensure unique sheet names and re-upload again.'
                     )
@@ -696,7 +712,7 @@ class WagerAuditProgram:
 
                             worksheet.autofilter(0, 0, 0, len(df.columns) - 1) #Add filter to header row
 
-                            if sheet_name != 'Missing Games': #Skip freezing columns for Missing Games sheet as we only need to freeze top row
+                            if sheet_name != 'Missing Games': #Skip freezing columns for Missing Games sheet as it isn't needed
                                 worksheet.freeze_panes(1, 1) #Freeze top row and game name column to keep headers/game names visible when scrolling
                             else: #Only freeze top row for Missing Games sheet
                                 worksheet.freeze_panes(1, 0)
@@ -788,6 +804,3 @@ class WagerAuditProgram:
                 return True
             else:
                 return False
-
-
-
